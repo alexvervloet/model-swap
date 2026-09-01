@@ -217,3 +217,44 @@ and it is sitting underneath every number the study produces.
 after writing 120 of them. The probe existed first, and I still batched the
 authoring. Ten minutes of probing per stratum would have shaped better
 questions.
+
+## 8. I wrote down the hazard, then walked into it
+
+**The lesson I had just written**, in knowledge-desk's LESSONS 45: two projects
+share one Postgres, and running one repo's test suite truncates the other's
+data. I wrote that paragraph, pushed it, and forty minutes later started a
+120-answer paid generation in the background and then ran knowledge-desk's test
+suite while it was still going.
+
+**What happened.** The `clean_db` fixture truncated every table 23 answers in.
+The org the run was writing against stopped existing, and the remaining 97
+answers failed on `answers_org_id_fkey`, "Key is not present in table orgs".
+The run reported `120 generated, 97 failed, $0.4589 spent` and exited 0.
+
+**Why writing it down did not help.** The lesson was stated as a sequential
+hazard: run the tests, lose the data, reload it. What actually bit was
+concurrent. The data was there when the run started and gone in the middle,
+which is a different failure with the same cause, and the sentence I wrote did
+not cover it.
+
+**The second bug, which was worse.** Every one of those 97 failures was written
+to the answer cache. `read_cached` returned them as hits, so the next run would
+have said "120 cached, 0 to generate" and the judge would have scored 97 empty
+strings as the model's output. An outage would have been reported as a quality
+regression, and the numbers would have looked plausible.
+
+**Fixed twice.** A failed generation is kept on disk and never returned as a
+hit, so it regenerates. And model-swap now creates and migrates its own
+`model_swap` database on the same server, so the two projects cannot reach each
+other's rows at all. Verified rather than assumed: knowledge-desk's full
+222-test suite now runs without the corpus tenant noticing.
+
+**The general form.** A shared mutable resource does not need a rule about who
+touches it when. It needs to stop being shared. Every version of "remember not
+to do X while Y is running" fails the first time something runs in the
+background, and the whole point of a background job is that you stop thinking
+about it.
+
+**And the one that generalises furthest.** Any cache that stores failures
+alongside successes has to distinguish them on read, or it converts a transient
+outage into a permanent, plausible-looking result. That is worse than crashing.
