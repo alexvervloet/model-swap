@@ -229,7 +229,17 @@ def run(variant: str, samples: int, confirm: bool, root: Path | None = None) -> 
 
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
     for index, (question, answer) in enumerate(todo, start=1):
-        verdict = judge_one(client, question, answer.text)
+        try:
+            verdict = judge_one(client, question, answer.text)
+        except anthropic.APIStatusError as exc:
+            # Every verdict so far is already on disk, so stopping here loses
+            # nothing and the next run resumes. Crashing out of the loop used to
+            # leave a partial set with no message saying it was partial, and a
+            # partial set is not a random sample: it is the first N questions in
+            # file order, which is the easy strata first.
+            print(f"\n\nstopped after {index - 1} of {len(todo)}: {exc.message}", file=sys.stderr)
+            print("verdicts so far are cached. Re-run to continue.", file=sys.stderr)
+            return 1
         write_cached(to_judgment(question, answer, verdict), root)
         print("." if verdict.correct else "x", end="", flush=True)
         if index % 40 == 0:

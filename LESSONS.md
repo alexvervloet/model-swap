@@ -299,3 +299,38 @@ specifically so your attention can be elsewhere.
 was reading had been built with real embeddings. The loader refuses to *build* a
 mock index, which is not the same as a run refusing to *read* one. A guard on the
 write path is not a guard on the read path.
+
+## 10. Out of credit, and the partial set looked like a result
+
+**What happened.** The Haiku judging run stopped 50 verdicts into 120 with
+`Your credit balance is too low to access the Anthropic API`. The account ran
+out mid-run.
+
+**Three separate problems, one event.**
+
+The exception propagated out of the loop and killed the process. Every verdict
+already written was fine, but nothing said the run was incomplete, and the next
+thing to read that directory would have found 50 judgments sitting there looking
+exactly like a finished set.
+
+Worse, 50 of 120 is not a sample of anything. The judge iterates the question
+set in file order, so the 50 it reached were `single` (20), `multihop` (20) and
+the first 10 of `override`. The three strata designed to be hardest, refusal,
+nearmiss and unflattering, were entirely absent. A rate computed from that
+subset would have been both wrong and flattering, and nothing about the numbers
+would have looked off.
+
+And I had run the command as `... | tail -3`, so the shell reported the exit
+status of `tail`. The run "succeeded".
+
+**Fixed.** The judge catches `APIStatusError`, prints how far it got and why,
+and exits non-zero. Progress was already written per item, so a re-run resumes.
+
+**The general form.** A long paid job has to assume it will be interrupted, and
+the question is not whether it can resume but whether an interrupted run is
+distinguishable from a finished one *by the thing that reads it next*. Partial
+output that looks complete is the failure; the interruption is just weather.
+
+**And the small one.** Piping a command into `tail` throws away its exit status.
+For anything whose failure matters, capture the status before the pipe or do not
+pipe it.
