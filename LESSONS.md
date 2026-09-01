@@ -405,3 +405,35 @@ load overwrote the record for the measurement database, and the next real run
 refused itself. Same shape as LESSONS 8 and 9 for the third time: state shared
 between two things that should not see each other. It is now named after the
 database it describes. I appear to need to learn this once per storage layer.
+
+## 13. The retired data was worth more than the data it replaced
+
+**The situation.** Dropping Opus stranded 120 answers that cost $2.60 and 170
+verdicts from a judge that no longer exists in the project. The obvious move was
+to delete them, since neither is a candidate any more.
+
+**What they turned out to be.** The answers are a measurement nobody would fund
+on purpose: what a model five times the price actually buys on this workload,
+which is 8.5x the cost and 2.6x the median latency for the same 120 questions.
+That number is free now and would cost $2.60 to obtain again.
+
+The verdicts are worth more. A retired judge is a second opinion, and two
+independent judges over one identical set of answers is exactly the measurement
+this project needed and had no way to buy: the current judge is also one of the
+two candidates, so its verdicts on its own family's answers are the one place a
+thumb could be on the scale. Grading the archived answers again with the current
+judge costs $0.24 and turns the sunk cost into the calibration the design was
+missing.
+
+**The design flaw it exposed.** A `Judgment` recorded its rubric hash, which is
+an identity, and nothing about the judge, which is a description. Two rubrics
+could always be told apart; neither could be named. The field exists now, and
+the 170 records that predate it load with it empty and report as "unrecorded"
+rather than being guessed at from what I happen to remember.
+
+**The general form.** Before deleting the output of a retired approach, ask what
+it is evidence *of* rather than what it was *for*. Data generated under a
+configuration you have abandoned is often the only independent sample you will
+ever have of that configuration, and independence is the expensive part. The
+question is never "do we still use this model", it is "what can only be measured
+by having two of something".

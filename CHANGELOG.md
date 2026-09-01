@@ -14,6 +14,16 @@
   at Opus.
 
 ### Added
+- `modelswap.compare`: cost, latency, token counts and accuracy per variant,
+  read from the cache with no API calls, no database and no key.
+- `modelswap.judges`: two judges over the same answers, with a
+  difference-in-differences that separates self-preference from a calibration
+  offset. Uses the 170 verdicts a retired Opus judge left on disk.
+- `REFERENCE_VARIANTS`: models whose cached answers are readable and gradeable
+  but which will never be generated again. Opus's 120 answers cost $2.60 and
+  are kept as a reference arm rather than deleted.
+- `Judgment.judge_model`, so a verdict records which model produced it. The
+  rubric hash always distinguished two judges; nothing said what either was.
 - A hard spend ceiling: $1.50 per generation run, $1.00 per judging run, checked
   against the estimate before the first call and against actual spend during the
   run. A run that exceeds it stops and keeps what it has.

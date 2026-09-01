@@ -176,10 +176,34 @@ in CI.
 
 Generated so far, against the real system under test with real embeddings:
 
-| Variant | Answers | Cost | Judged |
+| Variant | Answers | Cost | Role |
 |---|---|---|---|
-| claude-haiku-4-5 | 120 | $0.30 | pending, under the new rubric |
-| claude-sonnet-5 | pending, ~$0.96 | | |
+| claude-haiku-4-5 | 120 | $0.30 | candidate |
+| claude-sonnet-5 | pending | ~$0.96 | candidate, and the judge |
+| claude-opus-5 | 120 | $2.60, already spent | reference only, never generated again |
+
+```bash
+python -m modelswap.compare    # free: cost, latency and accuracy from the cache
+python -m modelswap.judges     # free: the retired judge against the current one
+```
+
+The Opus answers were generated before it was dropped as too expensive. They are
+kept because deleting them refunds nothing and they answer two questions the
+project could not otherwise afford. The first is what a much dearer model
+actually buys: it costs 8.5x Haiku for the same 120 questions and is 2.6x slower
+at the median, both measured rather than quoted. The second is better.
+
+**A retired judge is a second opinion.** Those 120 answers were graded by an
+Opus judge under a rubric that has since been retired, and 50 of Haiku's were
+too. Grading the same answers again with the current Sonnet judge gives two
+independent judges over one identical set of outputs, which is the only handle
+this project has on the bias it carries: the judge is also one of the two
+candidates. If the Opus judge was markedly softer on Opus's answers than the
+Sonnet judge, and the two agree on Haiku's, that gap is self-preference. If both
+differ by the same amount on both, it is a calibration offset, which a paired
+comparison cancels.
+
+That costs $0.24 to find out, on answers already paid for.
 
 An exploratory pass on Opus, before it was dropped as too expensive for this
 project, answered the corpus correctly 118 times out of 120. That was a problem
