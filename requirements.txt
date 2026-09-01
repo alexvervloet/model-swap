@@ -1,6 +1,11 @@
 # The scaffold needs almost nothing. Each milestone adds its own line, so the
 # dependency list reads as a record of what the project actually grew into.
 
+# The judge's verdict schema. Pinned to the exact version the system under test
+# pins, because both trees share one virtualenv and a disagreement here is a
+# conflict rather than an inconvenience. See LESSONS 1.
+pydantic==2.13.4
+
 # tests
 pytest==9.1.1
 pytest-cov==7.0.0
