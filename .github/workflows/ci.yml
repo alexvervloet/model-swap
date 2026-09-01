@@ -47,12 +47,14 @@ jobs:
           docker compose -f sut/knowledge-desk/docker-compose.yml logs db
           exit 1
 
-      - name: Migrate and seed the system under test
+      - name: Create, migrate and load model-swap's own database
         env:
           KNOWLEDGE_DESK_PATH: ${{ github.workspace }}/sut/knowledge-desk
-        run: |
-          python -m knowledge_desk.migrate
-          python -m knowledge_desk.seed
+        # Not `knowledge_desk.migrate`: this project has its own database on the
+        # same server, and the loader is what creates and migrates it. --mock
+        # because CI has no keys; nothing here scores anything, and the loader
+        # says loudly what the index is worth.
+        run: python -m modelswap.load --mock
 
       - name: Preflight
         env:

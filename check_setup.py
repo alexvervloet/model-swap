@@ -62,9 +62,8 @@ def _check_database(settings: Any) -> bool:
             count = cur.fetchone()[0]
     except Exception as exc:  # noqa: BLE001
         _fail(f"database unreachable or unmigrated: {exc}")
-        _fail(
-            "from the sibling checkout: docker compose up -d db && python -m knowledge_desk.migrate"
-        )
+        _fail("start the server:  (cd ../knowledge-desk && docker compose up -d db)")
+        _fail("then create ours:  python -m modelswap.load")
         return False
     _ok(f"database reachable, {count} document(s) indexed")
     if count == 0:
