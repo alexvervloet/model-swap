@@ -148,36 +148,35 @@ repository before the first label existed.
 
 ## Status
 
-The corpus, the question set, the answer runner, the judge and the calibration
-report are built and tested. Answers are generated and cached for Claude Opus 5.
+Built and tested: the corpus, the 120-question set, the answer runner, the
+judge, the two-round labeling flow, and the calibration report. 61 tests, green
+in CI.
 
-Not done: the human labeling, which is two rounds weeks apart and cannot be
-hurried; the decision layer; and the comparison run itself.
+Generated so far, against the real system under test with real embeddings:
 
-Eight write-ups in [LESSONS.md](LESSONS.md) so far, including three defects
-found in the system under test and one outage I caused by ignoring a hazard I
-had written down forty minutes earlier.
+| Variant | Answers | Cost | Judged |
+|---|---|---|---|
+| claude-opus-5 | 120 | $2.60 | 120 |
+| claude-haiku-4-5 | 120 | $0.30 | 50 |
 
-## Setup
+Opus answers this corpus correctly 118 times out of 120. That is a problem
+before it is a result: a calibration set drawn from it alone would be 41 correct
+answers and one wrong one, the human and the judge would agree on nearly
+everything, Cohen's kappa would be undefined, and the floor would refuse to
+certify a judge nobody had actually tested. The calibration set is drawn from
+two models for that reason.
 
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt && pip install -e .
+The two it got wrong are the interesting part, because both landed in strata
+invented to catch exactly them. It refused a question the documents answer
+("can I bring a horse across to Kilmore" — livestock are named and excluded),
+and it reported the refit schedule correctly while denying the documented link
+between refits and the reduced winter service.
 
-# The system under test is imported, so its dependencies live in this venv too.
-pip install -r ../knowledge-desk/requirements.txt && pip install -e ../knowledge-desk
+**Blocked on two things.** The Anthropic account ran out of credit partway
+through judging Haiku. And the human labels, which are two rounds weeks apart
+and are the one part of this that cannot be automated or hurried.
 
-# And it needs its database up:
-(cd ../knowledge-desk && docker compose up -d db && python -m knowledge_desk.migrate)
-
-python check_setup.py
-```
-
-One virtualenv holds both dependency trees. That is a real constraint rather
-than a convenience: a version this repo wants and the system under test does
-not is a conflict you have to resolve, so this repo's own `requirements.txt`
-stays as small as it can.
-
-
-`check_setup.py` finds Knowledge Desk at `../knowledge-desk`, or wherever
-`KNOWLEDGE_DESK_PATH` points if you keep it somewhere else.
+Ten write-ups in [LESSONS.md](LESSONS.md), including three defects found in the
+system under test and fixed there, one outage I caused by ignoring a hazard I
+had written down forty minutes earlier, and one cache that would have reported
+an outage as a quality regression.
