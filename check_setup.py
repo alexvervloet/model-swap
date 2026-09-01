@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from modelswap.sut import SutNotFound, find_sut
+from modelswap.sut import SutNotFound, ensure_importable, find_sut
 
 
 def _ok(msg: str) -> None:
@@ -37,8 +37,7 @@ def _check_sut() -> Path | None:
 
 def _check_importable(sut: Path) -> Any:
     """Import the SUT's settings, adding its root to the path if needed."""
-    if str(sut) not in sys.path:
-        sys.path.insert(0, str(sut))
+    ensure_importable()
     try:
         from knowledge_desk.config import settings  # noqa: PLC0415
     except Exception as exc:  # noqa: BLE001

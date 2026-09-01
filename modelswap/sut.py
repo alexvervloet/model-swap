@@ -12,6 +12,7 @@ job.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 ENV_VAR = "KNOWLEDGE_DESK_PATH"
@@ -65,3 +66,17 @@ def find_sut(root: Path | None = None) -> Path:
         + "\n".join(tried)
         + f"\n  Clone it beside this repo, or set {ENV_VAR} to point at it."
     )
+
+
+def ensure_importable(root: Path | None = None) -> Path:
+    """Make `knowledge_desk` importable and return the checkout it came from.
+
+    An editable install already puts it on the path, which is how CI and a
+    followed README get there. This is the fallback for a checkout that is
+    present but not installed, so the failure is "your database is down" rather
+    than "no module named knowledge_desk".
+    """
+    path = find_sut(root)
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+    return path
