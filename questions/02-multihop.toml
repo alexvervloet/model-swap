@@ -1,0 +1,143 @@
+# No single passage answers these. Each needs two or more documents, so a
+# candidate that stops at the first plausible chunk gets them wrong.
+
+[[question]]
+id = "multi-bikes-on-ashcombe"
+text = "How many bicycles fit on an Ashcombe sailing?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles", "01-fleet"]
+notes = "The bicycle policy defers to the fleet register. Twenty per Estuary vessel."
+
+[[question]]
+id = "multi-five-wheelchair-spaces"
+text = "Can I book five wheelchair spaces on one Kilmore sailing?"
+expect = "answerable"
+sources = ["07-accessibility", "01-fleet"]
+notes = "Depends which vessel is rostered. Brindle Bay has four."
+
+[[question]]
+id = "multi-dog-on-harbour-circular"
+text = "Can I bring my dog on the Harbour Circular?"
+expect = "answerable"
+sources = ["08-animals", "01-fleet"]
+notes = "No. Pets are Kilmore only, and the Circular runs on Ardmore."
+
+[[question]]
+id = "multi-february-sailings-during-refit"
+text = "If a Coastal vessel is in refit in February, how many sailings a day run to Kilmore?"
+expect = "answerable"
+sources = ["01-fleet", "02-routes-and-timetable"]
+notes = "Five. The winter timetable is what two vessels sustain while the third covers refit."
+
+[[question]]
+id = "multi-brindle-bay-wheelchair-booking"
+text = "MV Brindle Bay is on my sailing and I need a wheelchair space. Is that a problem?"
+expect = "answerable"
+sources = ["07-accessibility", "01-fleet"]
+notes = """Four spaces rather than six, held until 20 minutes before departure. Replaced a
+question about maximum passenger capacity that retrieval could not answer at all; see LESSONS 7."""
+
+[[question]]
+id = "multi-crew-shortage-entitlement"
+text = "My sailing was cancelled because they were short of crew. What am I owed?"
+expect = "answerable"
+sources = ["10-crewing-and-rostering", "05-disruption-and-weather"]
+notes = "Crewing makes it an operator cancellation, so the full disruption entitlements apply."
+
+[[question]]
+id = "multi-fourteen-metre-motorhome"
+text = "I have a 14 metre motorhome. Can I get it to Kilmore?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "Over the 12m standard, under the 16m approved limit. Seven days notice, written approval, sailing-specific."
+
+[[question]]
+id = "multi-loose-battery-on-ashcombe"
+text = "Can I carry a spare 400Wh e-bike battery on the Ashcombe crossing?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles", "01-fleet"]
+notes = "No. Above 300Wh it must go in the vehicle deck locker, and Estuary vessels have no vehicle deck."
+
+[[question]]
+id = "multi-fare-for-long-car"
+text = "What does it cost to take a 6.5 metre car and two adults to Kilmore?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "£28 + 2 x £6.50 for the extra metres, plus one adult foot fare: the driver is included."
+
+[[question]]
+id = "multi-winter-vehicle-vessels"
+text = "Which vessels carry vehicles to Kilmore in winter?"
+expect = "answerable"
+sources = ["01-fleet", "02-routes-and-timetable"]
+notes = "The Coastal class only, and only two are in service at once in winter."
+
+[[question]]
+id = "multi-no-ardmore-master"
+text = "What happens to the Harbour Circular if no endorsed Master is available?"
+expect = "answerable"
+sources = ["10-crewing-and-rostering", "02-routes-and-timetable"]
+notes = "It does not run, and no substitute vessel is provided."
+
+[[question]]
+id = "multi-assistance-dog-circular"
+text = "Can my assistance dog come on the Harbour Circular?"
+expect = "answerable"
+sources = ["07-accessibility", "08-animals"]
+notes = "Yes, every route including Ardmore. The animals policy explicitly does not apply."
+
+[[question]]
+id = "multi-wheelchair-space-release"
+text = "I booked a wheelchair space. How long is it held, and who can release it?"
+expect = "answerable"
+sources = ["07-accessibility", "09-terminal-operations"]
+notes = "Until 20 minutes before departure, and terminal staff have that authority explicitly."
+
+[[question]]
+id = "multi-total-bike-capacity"
+text = "How many bicycles can the whole fleet carry at once?"
+expect = "answerable"
+sources = ["01-fleet"]
+notes = "76: three Coastal at 12, two Estuary at 20, Ardmore none. Arithmetic over a table."
+
+[[question]]
+id = "multi-cash-refund-at-terminal"
+text = "Can the terminal desk hand me cash after they cancelled my sailing?"
+expect = "answerable"
+sources = ["09-terminal-operations", "04-cancellations-and-refunds"]
+notes = "No. Both documents say it, and terminal staff can still authorise meals and a hotel."
+
+[[question]]
+id = "multi-most-wheelchair-spaces"
+text = "What is the most wheelchair spaces available on any Kilmore sailing?"
+expect = "answerable"
+sources = ["01-fleet", "07-accessibility"]
+notes = "Six, on Selkie or Corrach."
+
+[[question]]
+id = "multi-pet-fee-ashcombe"
+text = "What is the pet fee on the Ashcombe crossing?"
+expect = "answerable"
+sources = ["08-animals", "03-fares-and-tickets"]
+notes = "There is none, because pets do not travel that route at all. The fare table lists the dog fare under Kilmore only."
+
+[[question]]
+id = "multi-four-hour-delay"
+text = "My sailing is four hours late. What do I get?"
+expect = "answerable"
+sources = ["05-disruption-and-weather", "09-terminal-operations"]
+notes = "£15 meal allowance over three hours, and terminal staff can authorise it without a complaint."
+
+[[question]]
+id = "multi-cyclist-arriving-late"
+text = "I am cycling and will reach Ashcombe three minutes before the sailing. Will I get on?"
+expect = "answerable"
+sources = ["09-terminal-operations", "06-vehicles-and-bicycles"]
+notes = "Yes. No check-in on that route and the gate closes two minutes before."
+
+[[question]]
+id = "multi-crew-hits-hours-limit"
+text = "What happens if a crew member reaches their hours limit halfway through the day?"
+expect = "answerable"
+sources = ["10-crewing-and-rostering", "05-disruption-and-weather"]
+notes = "They are stood down, and the sailing is cancelled if that drops the vessel below minimum crew."

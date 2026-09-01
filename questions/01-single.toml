@@ -1,0 +1,142 @@
+# Answerable from one document, usually one passage. The floor: a candidate that
+# cannot do these is not worth measuring on anything harder.
+
+[[question]]
+id = "single-adult-fare-kilmore"
+text = "How much is an adult foot passenger ticket to Kilmore?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "£9.40. A plain lookup with an exact number to get wrong."
+
+[[question]]
+id = "single-ashcombe-duration"
+text = "How long does the Ashcombe crossing take?"
+expect = "answerable"
+sources = ["02-routes-and-timetable"]
+notes = "18 minutes."
+
+[[question]]
+id = "single-brindle-bay-wheelchair-spaces"
+text = "How many wheelchair spaces does MV Brindle Bay have?"
+expect = "answerable"
+sources = ["01-fleet"]
+notes = "Four, not the six the other Coastal vessels have."
+
+[[question]]
+id = "single-vehicle-gate-close"
+text = "How long before departure does the vehicle gate close for a Kilmore sailing?"
+expect = "answerable"
+sources = ["09-terminal-operations"]
+notes = "10 minutes. The table also lists check-in closing at 30, which is the near miss."
+
+[[question]]
+id = "single-estuary-minimum-crew"
+text = "What is the minimum crew for an Estuary vessel?"
+expect = "answerable"
+sources = ["10-crewing-and-rostering"]
+notes = "Three: master, engineer, one deck."
+
+[[question]]
+id = "single-lost-property-holding"
+text = "How long do you hold general lost property?"
+expect = "answerable"
+sources = ["12-lost-property"]
+notes = "90 days. The table has six different periods, so the wrong row is easy to pick."
+
+[[question]]
+id = "single-coastal-wind-limit"
+text = "What wind speed stops the Coastal vessels sailing?"
+expect = "answerable"
+sources = ["05-disruption-and-weather"]
+notes = "Above 45 knots sustained."
+
+[[question]]
+id = "single-pets-per-sailing"
+text = "How many pets can travel on one sailing?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "Six, counted at booking."
+
+[[question]]
+id = "single-amendment-fee"
+text = "What does it cost to change a Standard ticket to a different sailing?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "£3.00 plus any fare difference, per ticket rather than per booking."
+
+[[question]]
+id = "single-complaint-acknowledgement"
+text = "How quickly do you acknowledge a complaint?"
+expect = "answerable"
+sources = ["13-complaints-and-compensation"]
+notes = "3 working days to acknowledge, 20 to answer. Two numbers, one asked for."
+
+[[question]]
+id = "single-max-vehicle-length"
+text = "How long a vehicle can I bring without asking permission first?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "12 metres standard, 16 with prior approval."
+
+[[question]]
+id = "single-harbour-circular-times"
+text = "What time does the Harbour Circular depart?"
+expect = "answerable"
+sources = ["02-routes-and-timetable"]
+notes = "11:00, 13:30, 16:00, April to October only."
+
+[[question]]
+id = "single-port-alben-berths"
+text = "How many berths does Port Alben have?"
+expect = "answerable"
+sources = ["09-terminal-operations"]
+notes = "Three. Kilmore has one, which is the near miss."
+
+[[question]]
+id = "single-pollution-reporting"
+text = "How quickly must a pollution incident be reported?"
+expect = "answerable"
+sources = ["11-incident-reporting"]
+notes = "Immediately, before any other report."
+
+[[question]]
+id = "single-ten-trip-price"
+text = "How much is a ten-trip book for the Ashcombe crossing?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "£30.00."
+
+[[question]]
+id = "single-resident-discount"
+text = "What discount do registered Kilmore residents get on foot passenger fares?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "40% on foot fares, 25% on vehicles. Two rates, one asked for."
+
+[[question]]
+id = "single-kennels-per-vessel"
+text = "How many kennels are there on a Coastal vessel?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "Four, first come first served, not reservable."
+
+[[question]]
+id = "single-coastal-refit-length"
+text = "How long is a Coastal vessel out of service for its annual refit?"
+expect = "answerable"
+sources = ["01-fleet"]
+notes = "Fourteen days, between January and March, never overlapping."
+
+[[question]]
+id = "single-minimum-rest"
+text = "How much rest must crew get in a 24-hour period?"
+expect = "answerable"
+sources = ["10-crewing-and-rostering"]
+notes = "10 hours, at least 6 of them unbroken."
+
+[[question]]
+id = "single-complaints-2024-total"
+text = "How many complaints did you receive in 2024?"
+expect = "answerable"
+sources = ["13-complaints-and-compensation"]
+notes = "1,340."

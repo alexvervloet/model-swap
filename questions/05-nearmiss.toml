@@ -1,0 +1,143 @@
+# These read like gaps and are not. A candidate that has learned to refuse when
+# retrieval looks thin fails here, which is the point of running them alongside
+# the refusal set: the two strata punish opposite mistakes.
+
+[[question]]
+id = "near-dog-to-rensley-point"
+text = "Can I take my dog on the ferry to Rensley Point?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "No document names Rensley Point and pets together. Pets are Kilmore only, so the answer is no."
+
+[[question]]
+id = "near-circular-accessible"
+text = "Is the Harbour Circular wheelchair accessible?"
+expect = "answerable"
+sources = ["07-accessibility"]
+notes = "Answered plainly and unflatteringly: no lift, no accessible toilet, no spaces."
+
+[[question]]
+id = "near-charge-ev-on-board"
+text = "Can I charge my electric car during the crossing?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "No. Charging is not available and cables must stay stowed."
+
+[[question]]
+id = "near-lift-on-estuary"
+text = "Do the Estuary vessels have a lift?"
+expect = "answerable"
+sources = ["07-accessibility"]
+notes = "They are step-free throughout by design, so the question dissolves rather than refuses."
+
+[[question]]
+id = "near-bring-a-horse"
+text = "Can I bring a horse across to Kilmore?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "Livestock and horses are not carried on passenger sailings."
+
+[[question]]
+id = "near-post-my-bank-card"
+text = "You found my bank card. Can you post it to me?"
+expect = "answerable"
+sources = ["12-lost-property"]
+notes = "Never posted. Collected or destroyed."
+
+[[question]]
+id = "near-pets-in-the-cafe"
+text = "Can my dog sit with me in the cafe?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "No: not the lounge, the cafe, or the bridge deck. An assistance dog may."
+
+[[question]]
+id = "near-dog-left-in-car"
+text = "Can I leave my dog in the car during the crossing?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "Yes, with a real caveat: unattended for 55 minutes, and refused above 22 degrees."
+
+[[question]]
+id = "near-reserve-a-kennel"
+text = "Can I reserve a kennel for the crossing?"
+expect = "answerable"
+sources = ["08-animals"]
+notes = "No. First come, first served on the day."
+
+[[question]]
+id = "near-refund-for-missed-sailing"
+text = "I arrived late and missed the boat. Can I have a refund?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds", "09-terminal-operations"]
+notes = "Treated as a cancellation with no notice."
+
+[[question]]
+id = "near-tandem-counts-as-one"
+text = "Does a tandem count as one bicycle?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "Two spaces and two fares. Trailers count as a further space."
+
+[[question]]
+id = "near-ten-trip-transferable"
+text = "Can my partner use my ten-trip book?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "Yes, transferable between passengers. One trip per sailing."
+
+[[question]]
+id = "near-assistance-dog-documentation"
+text = "What paperwork do I need to bring for my assistance dog?"
+expect = "answerable"
+sources = ["07-accessibility"]
+notes = "None. Staff do not ask for documentation, stated as a rule."
+
+[[question]]
+id = "near-vehicle-bigger-than-declared"
+text = "My van turned out to be longer than I said when booking. What happens?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "Refused carriage, fare not refunded, because the space was held for something else."
+
+[[question]]
+id = "near-medical-oxygen"
+text = "I travel with medical oxygen cylinders. Is there a limit?"
+expect = "answerable"
+sources = ["06-vehicles-and-bicycles"]
+notes = "Must be declared, no quantity limit for personal medical use. The LPG limit nearby is the trap."
+
+[[question]]
+id = "near-missed-connection-compensation"
+text = "Your delay made me miss my train. Will you cover the new ticket?"
+expect = "answerable"
+sources = ["13-complaints-and-compensation"]
+notes = "No. Consequential losses are excluded and named."
+
+[[question]]
+id = "near-unattended-bag"
+text = "I left a bag in the terminal for twenty minutes. What happens to it?"
+expect = "answerable"
+sources = ["09-terminal-operations"]
+notes = "A security incident after 15 minutes, not lost property. Terminal operations states the rule and names the policy; the incident document is supporting, not required."
+
+[[question]]
+id = "near-cash-found-on-board"
+text = "Someone handed in cash they found. Do they get it if nobody claims it?"
+expect = "answerable"
+sources = ["12-lost-property"]
+notes = "No finder's payment. Held 90 days then passed to charity in full."
+
+[[question]]
+id = "near-bike-left-at-terminal"
+text = "How long can I leave my bicycle in the rack at the terminal?"
+expect = "answerable"
+sources = ["12-lost-property"]
+notes = "Not lost property: removed after 14 days, held 30 more."
+
+[[question]]
+id = "near-report-a-near-miss"
+text = "Nothing actually happened, but a boat nearly hit us. Does that get reported?"
+expect = "answerable"
+sources = ["11-incident-reporting"]
+notes = "Yes, within 24 hours, and the review cares about near misses most."

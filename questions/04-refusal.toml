@@ -1,0 +1,143 @@
+# The corpus does not cover these, on purpose. See corpus/gaps.md. The correct
+# answer is that the documents do not say, and inventing a plausible one is the
+# failure that matters most: a confident wrong policy is worse than no answer.
+
+[[question]]
+id = "refuse-private-charter"
+text = "How much does it cost to charter a whole vessel for a private event?"
+expect = "refusal"
+sources = []
+notes = "No charter document exists. Plausible for an operator this size, which is the point."
+
+[[question]]
+id = "refuse-onboard-wifi"
+text = "Is there wifi on board?"
+expect = "refusal"
+sources = []
+notes = "Connectivity is never mentioned in any document."
+
+[[question]]
+id = "refuse-cafe-menu"
+text = "What food does the cafe serve, and can it cater for a nut allergy?"
+expect = "refusal"
+sources = []
+notes = "The cafe is named once, in the animals policy, and never described."
+
+[[question]]
+id = "refuse-school-group-ratios"
+text = "What adult to child supervision ratio do you require for a school group?"
+expect = "refusal"
+sources = []
+notes = "Group bookings cover fares and cancellation only."
+
+[[question]]
+id = "refuse-parental-leave"
+text = "How much parental leave do crew get?"
+expect = "refusal"
+sources = []
+notes = "The corpus is operational, not HR. Crewing covers hours and rest, not terms."
+
+[[question]]
+id = "refuse-drone-photography"
+text = "Can I fly a drone from the deck to photograph the crossing?"
+expect = "refusal"
+sources = []
+notes = "Not written anywhere."
+
+[[question]]
+id = "refuse-freight-rates"
+text = "What do you charge to move a pallet of goods as freight?"
+expect = "refusal"
+sources = []
+notes = "Dangerous goods names freight as the alternative route and never describes it."
+
+[[question]]
+id = "refuse-emissions-targets"
+text = "What fuel do the vessels burn and what are your emissions targets?"
+expect = "refusal"
+sources = []
+notes = "Absent entirely."
+
+[[question]]
+id = "refuse-travel-insurance"
+text = "Which travel insurance do you recommend for a missed connection?"
+expect = "refusal"
+sources = []
+notes = "The consequential-loss exclusion is stated; insurance never is."
+
+[[question]]
+id = "refuse-old-timetable"
+text = "What was the Kilmore timetable before March 2024?"
+expect = "refusal"
+sources = []
+notes = "The withdrawal is dated, the earlier timetable is not recorded."
+
+[[question]]
+id = "refuse-long-stay-parking"
+text = "How much is long stay parking at Port Alben?"
+expect = "refusal"
+sources = []
+notes = "Free parking appears only for a vehicle stranded by a cancellation. General parking is absent."
+
+[[question]]
+id = "refuse-alcohol-on-board"
+text = "Do you sell alcohol on board?"
+expect = "refusal"
+sources = []
+notes = "Nothing describes what the cafe sells."
+
+[[question]]
+id = "refuse-who-runs-the-company"
+text = "Who is the managing director of Meridian Ferries?"
+expect = "refusal"
+sources = []
+notes = "Roles are named, people never are."
+
+[[question]]
+id = "refuse-headcount"
+text = "How many people does Meridian employ?"
+expect = "refusal"
+sources = []
+notes = "Minimum crew and a relief pool of six are given; total headcount is not."
+
+[[question]]
+id = "refuse-student-discount"
+text = "Do you offer a student discount?"
+expect = "refusal"
+sources = []
+notes = "There is a resident discount and a child fare. No student rate exists, which makes this a live trap."
+
+[[question]]
+id = "refuse-terminal-phone-number"
+text = "What is the phone number for the Port Alben terminal?"
+expect = "refusal"
+sources = []
+notes = "No contact details anywhere in the corpus."
+
+[[question]]
+id = "refuse-bike-hire"
+text = "Can I hire a bicycle at the terminal?"
+expect = "refusal"
+sources = []
+notes = "Carriage is covered at length. Hire is not mentioned."
+
+[[question]]
+id = "refuse-lost-ten-trip-book"
+text = "I lost my ten-trip book. Will you replace it?"
+expect = "refusal"
+sources = []
+notes = "Lost property covers found items. A lost ticket's replacement is not addressed."
+
+[[question]]
+id = "refuse-showers-on-board"
+text = "Are there showers on board the Coastal vessels?"
+expect = "refusal"
+sources = []
+notes = "Toilets and a lounge are described. Showers are not."
+
+[[question]]
+id = "refuse-vehicle-insurance-claim"
+text = "My car was scratched on the vehicle deck. How do I claim?"
+expect = "refusal"
+sources = []
+notes = "Damage to a vehicle is a reportable incident, and the claims process for it is never described. The near miss is real: incident reporting will retrieve well."

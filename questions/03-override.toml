@@ -1,0 +1,143 @@
+# Two documents both look like they answer, and one governs the other. The
+# failure mode is picking the passage that retrieved best rather than the one
+# that applies, and it is the stratum most likely to separate candidates.
+
+[[question]]
+id = "override-saver-operator-cancel"
+text = "You cancelled my sailing because of the weather. I have a Saver ticket. Do I get my money back?"
+expect = "answerable"
+sources = ["05-disruption-and-weather", "04-cancellations-and-refunds"]
+notes = "Yes, in full. The fare table says Saver never refunds; disruption overrides it explicitly."
+
+[[question]]
+id = "override-flex-vehicle-late-cancel"
+text = "I have a Flex booking with a car and I cancelled six hours before. Do I get a full refund?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "No. The vehicle fare is forfeited under 12 hours whatever the class. The one place Flex does not refund."
+
+[[question]]
+id = "override-missed-sailing-flex"
+text = "I missed my sailing. I had a Flex ticket. Is it wasted?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "No, Flex is valid on any sailing that day. Standard and Saver are wasted. The refunds policy alone answers it; terminal operations only supplies the gate time."
+
+[[question]]
+id = "override-assistance-dog-and-pet-limit"
+text = "Six pets are already booked on my sailing. Can my assistance dog still come?"
+expect = "answerable"
+sources = ["07-accessibility", "08-animals"]
+notes = "Yes. Assistance dogs are not counted against the limit and need no booking."
+
+[[question]]
+id = "override-gusting-fifty-knots"
+text = "The forecast says gusting to 50 knots. Will the Kilmore sailing be cancelled?"
+expect = "answerable"
+sources = ["05-disruption-and-weather"]
+notes = "Not on that alone. Sustained wind is the measure, and the document says so pointedly."
+
+[[question]]
+id = "override-complaint-about-not-sailing"
+text = "I want to complain that the Master refused to sail. Will the decision be reviewed?"
+expect = "answerable"
+sources = ["13-complaints-and-compensation", "05-disruption-and-weather"]
+notes = "No. It is answered with an explanation, and safety decisions are not overturned by complaints."
+
+[[question]]
+id = "override-hotel-without-complaining"
+text = "Do I have to make a complaint to get the overnight hotel after a cancellation?"
+expect = "answerable"
+sources = ["05-disruption-and-weather", "13-complaints-and-compensation"]
+notes = "No. Entitlements are not discretionary and terminal staff authorise them directly."
+
+[[question]]
+id = "override-compensation-limit-on-refund"
+text = "My refund is £300. Does that need a Director to approve it, given the £250 limit?"
+expect = "answerable"
+sources = ["13-complaints-and-compensation", "04-cancellations-and-refunds"]
+notes = "No. The limits govern discretionary compensation, not what a passenger is already owed."
+
+[[question]]
+id = "override-accessible-alternative-circular"
+text = "If I cannot board the Harbour Circular, what accessible alternative do you offer?"
+expect = "answerable"
+sources = ["07-accessibility", "01-fleet"]
+notes = "None, stated plainly. No other vessel runs that route."
+
+[[question]]
+id = "override-group-cancel-inside-seven-days"
+text = "We booked 20 people and want to cancel six of them five days before. What does it cost?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "The free 25% allowance needs more than 7 days notice. Inside that, the fare class table applies."
+
+[[question]]
+id = "override-standard-twenty-hours"
+text = "I want to cancel a Standard ticket 20 hours before departure. What do I get back?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "50%. The 12-to-48 hour band, which is easy to read as either neighbour."
+
+[[question]]
+id = "override-notice-measured-from"
+text = "I decided to cancel on Monday but only submitted it on Wednesday. Which date counts?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "Receipt, not decision. Stated explicitly because it is the argument people have."
+
+[[question]]
+id = "override-diverted-not-cancelled"
+text = "The ferry landed at a different port. Is that a cancellation?"
+expect = "answerable"
+sources = ["05-disruption-and-weather"]
+notes = "No. Onward road transport at Meridian's cost. A curtailed sailing that returns is cancelled."
+
+[[question]]
+id = "override-declined-transport-took-taxi"
+text = "I turned down your bus and took a taxi instead. Will you pay for it?"
+expect = "answerable"
+sources = ["05-disruption-and-weather"]
+notes = "Reimbursed to the value of the transport offered, not the value of what was spent."
+
+[[question]]
+id = "override-assistance-not-booked"
+text = "I need assistance but did not book it 24 hours ahead. Can you refuse to carry me?"
+expect = "answerable"
+sources = ["07-accessibility"]
+notes = "Never a condition of travel. 24 hours only guarantees it."
+
+[[question]]
+id = "override-crew-muzzled-my-dog"
+text = "The crew made me muzzle my dog. Can I complain and have it overturned?"
+expect = "answerable"
+sources = ["08-animals", "13-complaints-and-compensation"]
+notes = "It is recorded but not a matter for complaints. Same shape as the Master's decision."
+
+[[question]]
+id = "override-flex-refund-after-departure"
+text = "My Flex ticket was for yesterday's sailing and I did not travel. Can I refund it now?"
+expect = "answerable"
+sources = ["04-cancellations-and-refunds"]
+notes = "No. Flex refunds any time before departure, and the table says after departure it is not available."
+
+[[question]]
+id = "override-two-trips-one-sailing"
+text = "Two of us are travelling. Can we both use my ten-trip book on the same sailing?"
+expect = "answerable"
+sources = ["03-fares-and-tickets"]
+notes = "No. Transferable between passengers, but only one trip per sailing."
+
+[[question]]
+id = "override-smaller-vessel-substituted"
+text = "You put a smaller boat on and now I am bumped. I only have a Saver."
+expect = "answerable"
+sources = ["09-terminal-operations", "05-disruption-and-weather"]
+notes = "Disruption entitlements apply, including on a Saver. Sailings are not overbooked."
+
+[[question]]
+id = "override-manager-overrule-master"
+text = "Can the Duty Operations Manager overrule a Master who will not sail?"
+expect = "answerable"
+sources = ["05-disruption-and-weather"]
+notes = "No. They can suspend a route or a day, which is the opposite direction."
