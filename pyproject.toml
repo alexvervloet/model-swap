@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-swap"
+version = "0.0.1"
+description = "Measure what a model migration costs, on a real app"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+packages = ["modelswap"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "sut: needs the sibling knowledge-desk checkout and its database",
+    "paid: spends money against a real provider; never runs in CI",
+]
+
+[tool.coverage.run]
+source = ["modelswap"]
+
+[tool.coverage.report]
+# Starts where the scaffold lands and rises with each milestone. A floor that
+# was never raised is a floor nobody is using.
+fail_under = 80
+show_missing = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # import sorting
+    "UP",       # pyupgrade
+    "B",        # bugbear
+    "SIM",      # simplify
+    "C4",       # comprehensions
+    "S",        # flake8-bandit
+]
+ignore = [
+    "E501",  # line length is the formatter's job
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.mypy]
+# No python_version pin: it must match the interpreter in use. See the same
+# note in knowledge-desk, which learned it the hard way.
+files = ["modelswap"]
+ignore_missing_imports = true
+strict = true
