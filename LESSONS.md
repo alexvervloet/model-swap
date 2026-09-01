@@ -31,3 +31,32 @@ worth avoiding for as long as possible.
 **Also.** The README's setup block was wrong when written, and the preflight
 caught it rather than a person. That is the argument for a preflight that runs
 the real path instead of printing a checklist.
+
+## 2. The system under test had no corpus worth measuring
+
+**Expected.** Knowledge Desk is deployed, seeded and demoed, so the plan assumed
+M1 was about writing questions against documents that already existed.
+
+**What happened.** Its seeded corpus is four documents of one sentence each.
+"Acme refunds are processed within five business days of the request" is the
+whole of the refund policy. That is exactly right for what those documents were
+built to do, which is prove that Globex cannot retrieve Acme's answer, and it is
+useless for telling two models apart. Every question over a one-sentence
+document is either a lookup any model passes or unanswerable.
+
+**Why the plan missed it.** The corpus was reviewed for whether it existed
+rather than for what it could support. A demo corpus and a measurement corpus
+have almost nothing in common: one needs two documents that must not reach each
+other, the other needs enough depth that a weaker model can plausibly get a
+question wrong.
+
+**What to do differently.** M1 grew a half it did not have: authoring the
+documents, not just the questions. Following the precedent CCC set with
+Northgate Wealth Partners, the corpus is synthetic, deterministic from a seed,
+and lives in this repo rather than in the system under test, because the
+questions and the documents have to be designed together. A question that is
+genuinely unanswerable is only knowable if you wrote what is absent.
+
+**The check that would have caught it earlier.** Before planning a measurement,
+ask what the weakest candidate would score. If the answer is "the same as the
+strongest", there is nothing to measure yet.
