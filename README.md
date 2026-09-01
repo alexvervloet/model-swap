@@ -157,7 +157,7 @@ Generated so far, against the real system under test with real embeddings:
 | Variant | Answers | Cost | Judged |
 |---|---|---|---|
 | claude-opus-5 | 120 | $2.60 | 120 |
-| claude-haiku-4-5 | 120 | $0.30 | 50 |
+| claude-haiku-4-5 | 120 | $0.30 | 50 of 120 |
 
 Opus answers this corpus correctly 118 times out of 120. That is a problem
 before it is a result: a calibration set drawn from it alone would be 41 correct
@@ -172,11 +172,13 @@ invented to catch exactly them. It refused a question the documents answer
 and it reported the refit schedule correctly while denying the documented link
 between refits and the reduced winter service.
 
-**Blocked on two things.** The Anthropic account ran out of credit partway
-through judging Haiku. And the human labels, which are two rounds weeks apart
-and are the one part of this that cannot be automated or hurried.
+**Blocked on two things.** The Anthropic account ran out of credit 50 verdicts
+into judging Haiku, so the comparison is incomplete. And the human labels, which
+are two rounds weeks apart and are the one part of this that cannot be automated
+or hurried.
 
-Ten write-ups in [LESSONS.md](LESSONS.md), including three defects found in the
-system under test and fixed there, one outage I caused by ignoring a hazard I
-had written down forty minutes earlier, and one cache that would have reported
-an outage as a quality regression.
+Eleven write-ups in [LESSONS.md](LESSONS.md), including three defects found in
+the system under test and fixed there, one outage I caused by ignoring a hazard
+I had written down forty minutes earlier, one cache that would have reported an
+outage as a quality regression, and one report that was quietly reading half the
+data it claimed to.

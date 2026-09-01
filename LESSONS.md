@@ -334,3 +334,28 @@ output that looks complete is the failure; the interruption is just weather.
 **And the small one.** Piping a command into `tail` throws away its exit status.
 For anything whose failure matters, capture the status before the pipe or do not
 pipe it.
+
+## 11. The calibration report was reading half the calibration set
+
+**Found by writing the test, not by running the code.** `agreement.report` took
+a `--variant` and used it to look up each judgment. The calibration set is drawn
+from two models, and every label already records which model produced the answer
+it graded, so passing one variant meant every item from the other one found no
+judgment and was silently dropped.
+
+Ten labeled items scored `n=6`. Nothing errored, nothing warned, and the number
+printed next to it was a real agreement rate over a real subset. If the two
+models had disagreed with the human in different ways, which is the entire
+reason both are in the set, the report would have measured one of them and named
+neither.
+
+**Why it survived until a test.** Running it by hand never showed it, because
+with no labels the report exits early, and I had no labels. The first thing that
+ever supplied a full set of labels and judgments was the test, and the assertion
+that caught it was `"5 disagreement(s)" in out` failing against three.
+
+**The general form.** A parameter that duplicates something the data already
+carries is a chance for the two to disagree. The label knew its variant; asking
+the caller to supply one as well created a second source of truth whose only
+possible contribution was to be wrong. When a function's argument can be derived
+from its input, deriving it is not a convenience, it removes a failure mode.
