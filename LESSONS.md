@@ -60,3 +60,30 @@ genuinely unanswerable is only knowable if you wrote what is absent.
 **The check that would have caught it earlier.** Before planning a measurement,
 ask what the weakest candidate would score. If the answer is "the same as the
 strongest", there is nothing to measure yet.
+
+## 3. The first CI run failed on tests that passed locally
+
+**Expected.** The locator tests build their own directories in `tmp_path`, so
+they looked hermetic. Five green locally, and the CI job was a formality.
+
+**What happened.** CI sets `KNOWLEDGE_DESK_PATH` for the test step, because the
+system under test is checked out inside the workspace rather than beside it.
+The locator reads that variable first, by design, so every test that passed an
+explicit `root=` got CI's answer instead of the directory it had just built.
+Two of five failed.
+
+**The part worth keeping.** The tests were not hermetic and passing locally had
+nothing to do with the code being right. They passed because this machine
+happens not to export that variable. A test that reads process environment it
+does not set is a test whose result depends on whose machine it ran on, and the
+only reason this surfaced in twenty minutes rather than in six weeks is that CI
+runs somewhere configured differently on purpose.
+
+**Fixed by** an autouse fixture that clears the override for every test, so the
+one test that cares about precedence sets it explicitly and the rest start from
+nothing.
+
+**What to do differently.** When a module reads environment, the conftest that
+clears it is part of writing that module, not something to add after a red
+build. The general form: anything ambient (environment, cwd, clock, network,
+locale) is either set by the test or cleared by the test.
