@@ -51,8 +51,9 @@ def load(*, allow_mock: bool = False, reset: bool = False) -> int:
 
     # Our own database, created and migrated here rather than by a README step
     # somebody can skip. See modelswap.database for why it is not shared.
-    if database.create():
-        print(f"  created database {database.DB_NAME}")
+    db_name = database.configured_name()
+    if database.create(db_name):
+        print(f"  created database {db_name}")
     applied = migrate.apply_pending()
     if applied:
         print(f"  applied {len(applied)} migration(s)")

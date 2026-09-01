@@ -258,3 +258,44 @@ about it.
 **And the one that generalises furthest.** Any cache that stores failures
 alongside successes has to distinguish them on read, or it converts a transient
 outage into a permanent, plausible-looking result. That is worse than crashing.
+
+## 9. The same bug, one level in, and this time it was silent
+
+**Immediately after** fixing LESSONS 8 by giving model-swap its own database, I
+restarted the 97 failed answers, and 84 of them failed again.
+
+**What happened.** model-swap's own test suite. `test_load.py` has two tests
+marked `sut` that call the loader with `reset=True` and `allow_mock=True`,
+because that is the behaviour they exist to check. Run against the measurement
+database while a generation was in flight, they deleted the tenant, recreated
+it, and reindexed the corpus with mock embeddings.
+
+The first isolation fix stopped knowledge-desk's tests from reaching this
+project's data. It did nothing about this project's own tests, which were
+pointed at the same database the whole time.
+
+**The half that would have poisoned the study.** A deleted tenant produces a
+foreign key error, which is loud. A *reindexed* tenant produces nothing at all:
+the answers generated after the reset retrieved against deterministic fake
+vectors, came back with confident text about the wrong passages, and were cached
+as ordinary successes. There is no flag on them and no way to tell them from the
+good ones, so the whole answer cache went in the bin and was regenerated. The
+crash cost $0.33. The silent half would have cost the credibility of every
+number downstream of it.
+
+**Fixed** by giving the tests a third database, `model_swap_test`, configured in
+`tests/conftest.py` at module level rather than in a fixture, because
+knowledge-desk reads the environment once at import and a fixture runs too late.
+Verified by loading the corpus with real embeddings, running the full suite, and
+checking the tenant still holds 44 voyage-3 chunks.
+
+**What I keep relearning.** Both times, the fix I reached for first was a rule
+about ordering: do not run the tests during a generation. Both times the real
+fix was to remove the sharing. A rule about when to touch a shared resource
+survives exactly as long as your attention does, and background jobs exist
+specifically so your attention can be elsewhere.
+
+**The check I did not have.** Nothing in the pipeline asserted that the index it
+was reading had been built with real embeddings. The loader refuses to *build* a
+mock index, which is not the same as a run refusing to *read* one. A guard on the
+write path is not a guard on the read path.
