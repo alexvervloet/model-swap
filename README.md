@@ -103,15 +103,60 @@ It refuses to run on mock embeddings. An index of deterministic fake vectors
 retrieves passages unrelated to the question, and a score over that is noise
 wearing a number.
 
+## The question set
+
+120 questions over the corpus, 20 in each of six strata, in
+[questions/](questions/). Each states what it expects and which documents have
+to be reachable for an answer to be possible.
+
+| Stratum | What it tests |
+|---|---|
+| single | One passage answers it. The floor. |
+| multihop | Two or more documents. A candidate that stops at the first plausible chunk fails. |
+| override | Two passages both look right and one governs the other. |
+| refusal | The documents do not cover it. Inventing a plausible policy is the worst outcome. |
+| nearmiss | Reads like a gap and is not. Punishes the opposite mistake to the refusal set. |
+| unflattering | Answerable, and the honest answer is bad for the company. |
+
+```bash
+python -m modelswap.questions --verify    # can retrieval reach what each one needs?
+```
+
+All 120 reach their sources at the app's default depth. Getting there found a
+retrieval limit worth more than the question it cost: the fleet register, which
+holds the only capacity table in the corpus, is unreachable by any question
+phrased in passenger language rather than vessel language. See LESSONS 7.
+
+## Grading
+
+```bash
+python -m modelswap.answers --variant claude-opus-5 --samples 1 --confirm
+python -m modelswap.judge   --variant claude-opus-5 --samples 1 --confirm
+python -m modelswap.labels  --round 1      # you, by hand
+python -m modelswap.agreement              # is the judge worth listening to?
+```
+
+The judge grades against a reference: every question carries the correct answer
+in its notes, written when the question was written. It never learns which model
+produced an answer. Its reasoning field is generated before its verdict, because
+a model that states a verdict first spends the rest of the response defending
+it.
+
+None of its verdicts count until `agreement` says they do. The floor is 85%
+agreement with human labels and a Cohen's kappa of 0.60, both declared in the
+repository before the first label existed.
+
 ## Status
 
-Early. The corpus is written and loads into the system under test, with its
-version pinned by a hash so an edit invalidates a run rather than quietly
-changing what the numbers meant. Nothing is scored yet: no question set, no
-judge, no decision layer.
+The corpus, the question set, the answer runner, the judge and the calibration
+report are built and tested. Answers are generated and cached for Claude Opus 5.
 
-Three defects so far, two of them mine and one in the system under test. They
-are in [LESSONS.md](LESSONS.md).
+Not done: the human labeling, which is two rounds weeks apart and cannot be
+hurried; the decision layer; and the comparison run itself.
+
+Eight write-ups in [LESSONS.md](LESSONS.md) so far, including three defects
+found in the system under test and one outage I caused by ignoring a hazard I
+had written down forty minutes earlier.
 
 ## Setup
 
