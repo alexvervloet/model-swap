@@ -1,0 +1,6 @@
+# The scaffold needs almost nothing. Each milestone adds its own line, so the
+# dependency list reads as a record of what the project actually grew into.
+
+# tests
+pytest==9.1.1
+pytest-cov==7.0.0
