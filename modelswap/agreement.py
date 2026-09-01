@@ -92,15 +92,23 @@ def self_agreement(root: Path | None = None) -> Agreement:
 
 
 def judge_agreement(
-    round_number: int, variant: str, root: Path | None = None
+    round_number: int, root: Path | None = None
 ) -> tuple[Agreement, list[tuple[questions.Question, bool, bool]]]:
-    """The judge against one round of labels, plus every case they differed on."""
+    """The judge against one round of labels, plus every case they differed on.
+
+    Each label carries the model whose answer it graded, and that is what gets
+    looked up. Taking a single variant here silently dropped every item from
+    the other one, which is half the set and the half that exists to give the
+    judge something to disagree about.
+    """
     by_qid = {q.qid: q for q in questions.load(root).questions}
     pairs: list[tuple[bool, bool]] = []
     disagreements: list[tuple[questions.Question, bool, bool]] = []
 
     for label in labels.read_labels(round_number, root):
-        verdict = judge.read_cached(label.qid, variant, label.sample, label.answer_digest, root)
+        verdict = judge.read_cached(
+            label.qid, label.variant, label.sample, label.answer_digest, root
+        )
         if verdict is None:
             continue
         pairs.append((label.correct, verdict.correct))
@@ -110,12 +118,15 @@ def judge_agreement(
     return agreement_of(pairs), disagreements
 
 
-def report(variant: str, root: Path | None = None) -> int:
+def report(root: Path | None = None) -> int:
     target = len(labels.calibration_set(root))
     round1 = labels.read_labels(1, root)
     round2 = labels.read_labels(2, root)
 
-    print(f"calibration set: {target} answers from {variant}")
+    spread = Counter(variant for _, variant in labels.calibration_set(root))
+    print(f"calibration set: {target} answers")
+    for variant, count in sorted(spread.items()):
+        print(f"    {count:3} from {variant}")
     print(f"  round 1: {len(round1)} labeled")
     print(f"  round 2: {len(round2)} labeled\n")
 
@@ -134,7 +145,7 @@ def report(variant: str, root: Path | None = None) -> int:
         print("  Judge agreement below is provisional and measured against training data.")
 
     against = 2 if round2 else 1
-    scored, disagreements = judge_agreement(against, variant, root)
+    scored, disagreements = judge_agreement(against, root)
     if scored.n == 0:
         print("\nNo judged answers match these labels. Run modelswap.judge first.")
         return 1
@@ -159,14 +170,7 @@ def report(variant: str, root: Path | None = None) -> int:
 
 
 def main() -> int:
-    import argparse  # noqa: PLC0415
-
-    from modelswap import answers  # noqa: PLC0415
-
-    parser = argparse.ArgumentParser(description="Is the judge worth listening to?")
-    parser.add_argument("--variant", default="claude-opus-5", choices=answers.VARIANTS)
-    args = parser.parse_args()
-    return report(args.variant)
+    return report()
 
 
 if __name__ == "__main__":
