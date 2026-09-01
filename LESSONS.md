@@ -176,3 +176,44 @@ a database configuration problem and is not one.
 Only the already-exists path was affected, so the create path stayed green and
 the bug only appeared on the second run. Worth remembering when a first run
 passes: the second run is a different code path.
+
+## 7. The fleet register is unreachable unless you say "vessel"
+
+**Expected.** Writing 120 questions and checking they retrieve was a formality
+before the interesting work started.
+
+**What happened.** 117 of 120 reached their sources at the app's default k=6.
+The three that did not were three different problems, which is the reason the
+verifier exists rather than a spot check.
+
+Two were my bookkeeping: `sources` listed every document that was *relevant*
+rather than the ones *necessary* to answer. "I missed my sailing, I had a Flex
+ticket" named terminal operations as well as the refunds policy, but the refunds
+policy answers it alone; terminal operations only supplies the gate time the
+question already assumes. Over-specifying sources turns a passing question into
+a failing one and hides the real failures among the noise.
+
+The third is a genuine limit of the app. "What is the most passengers a single
+Kilmore sailing can carry?" retrieves the fares document three times, the
+animals policy, and the timetable. The fleet register, which holds the only
+capacity table in the corpus, never appears. Rephrasing to "how many cars can
+one Kilmore sailing carry" does not help. Rephrasing to "which vessel carries
+the fewest vehicles" puts the fleet register at rank 1.
+
+**What that means.** Retrieval matches the document's subject, not the user's
+framing. The fleet register is *about vessels*, so it is reachable by questions
+about vessels. A passenger asking about capacity does not think in vessels, they
+think in "how many people fit", and that phrasing lands in the fares document,
+which is full of the words passenger and adult and child. No amount of model
+quality fixes it, because the answer never reaches the context window.
+
+**What I did.** Replaced the question, because a question every candidate fails
+identically measures nothing and contributes only noise to a paired comparison.
+The finding itself is worth more than the question was, and belongs in the
+write-up: this is the class of failure a model migration study will not catch,
+and it is sitting underneath every number the study produces.
+
+**What to do differently.** Verify retrieval before writing the question, not
+after writing 120 of them. The probe existed first, and I still batched the
+authoring. Ten minutes of probing per stratum would have shaped better
+questions.
