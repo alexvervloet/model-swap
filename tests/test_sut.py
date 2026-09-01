@@ -11,6 +11,18 @@ import pytest
 from modelswap import sut
 
 
+@pytest.fixture(autouse=True)
+def _no_ambient_sut_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Clear the override for this module only.
+
+    These tests build their own directories and must not see a real checkout.
+    Every other module in the suite needs the opposite: CI sets this variable
+    because the system under test lives inside the workspace there, and a
+    loader test with it cleared cannot find anything at all. See LESSONS 3.
+    """
+    monkeypatch.delenv(sut.ENV_VAR, raising=False)
+
+
 def _make_checkout(root: Path, name: str = "knowledge-desk") -> Path:
     """A directory that passes the marker check."""
     path = root / name

@@ -83,10 +83,20 @@ runs somewhere configured differently on purpose.
 one test that cares about precedence sets it explicitly and the rest start from
 nothing.
 
-**What to do differently.** When a module reads environment, the conftest that
+**What to do differently.** When a module reads environment, the fixture that
 clears it is part of writing that module, not something to add after a red
 build. The general form: anything ambient (environment, cwd, clock, network,
 locale) is either set by the test or cleared by the test.
+
+**And then the fix was wrong too.** Clearing the variable in `conftest.py` made
+it autouse for the whole suite. Two milestones later the loader tests arrived,
+which need the real checkout, and in CI the only way to find it is that same
+variable. They failed with "knowledge-desk checkout not found" while the
+checkout sat in the workspace. The fixture moved into the module that needs it.
+
+A blanket fixture in `conftest.py` is a decision about every test that will ever
+be written in that directory, including the ones that want the opposite. Scope
+it to the module unless it is genuinely universal.
 
 ## 4. The index went in on mock embeddings and said nothing
 
