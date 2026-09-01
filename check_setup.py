@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 from modelswap.sut import SutNotFound, find_sut
 
@@ -34,7 +35,7 @@ def _check_sut() -> Path | None:
     return path
 
 
-def _check_importable(sut: Path) -> object | None:
+def _check_importable(sut: Path) -> Any:
     """Import the SUT's settings, adding its root to the path if needed."""
     if str(sut) not in sys.path:
         sys.path.insert(0, str(sut))
@@ -48,21 +49,23 @@ def _check_importable(sut: Path) -> object | None:
     return settings
 
 
-def _check_database(settings: object) -> bool:
+def _check_database(settings: Any) -> bool:
     try:
         import psycopg  # noqa: PLC0415
     except ImportError:
         _fail("psycopg not installed; it comes with the SUT's requirements")
         return False
 
-    url = getattr(settings, "database_url")
+    url = settings.database_url
     try:
         with psycopg.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
             cur.execute("select count(*) from documents")
             count = cur.fetchone()[0]
     except Exception as exc:  # noqa: BLE001
         _fail(f"database unreachable or unmigrated: {exc}")
-        _fail("from the sibling checkout: docker compose up -d db && python -m knowledge_desk.migrate")
+        _fail(
+            "from the sibling checkout: docker compose up -d db && python -m knowledge_desk.migrate"
+        )
         return False
     _ok(f"database reachable, {count} document(s) indexed")
     if count == 0:
@@ -82,9 +85,7 @@ def main() -> int:
         return 1
 
     settings = _check_importable(sut)
-    if settings is None:
-        failures += 1
-    elif not _check_database(settings):
+    if settings is None or not _check_database(settings):
         failures += 1
 
     print()
