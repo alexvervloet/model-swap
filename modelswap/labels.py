@@ -27,6 +27,7 @@ import argparse
 import json
 import random
 import sys
+from collections import Counter
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -38,6 +39,14 @@ from modelswap.sut import repo_root
 # session, or the two rounds are not measuring the same thing.
 CALIBRATION_SEED = 20260901
 PER_STRATUM = 7
+
+# The calibration set is drawn from two models, not one. The strongest
+# candidate answers this corpus correctly 118 times in 120, so a set built from
+# it alone is 41 correct answers and one wrong one: the human and the judge
+# would agree on almost everything, kappa would be undefined, and the floor
+# would refuse to certify a judge nobody had actually tested. Calibrating on the
+# range of quality the judge has to grade means including the weaker end of it.
+CALIBRATION_VARIANTS = ("claude-opus-5", "claude-haiku-4-5")
 
 
 @dataclass(frozen=True)
@@ -79,22 +88,29 @@ def append_label(label: Label, root: Path | None = None) -> None:
         handle.write(json.dumps(asdict(label), sort_keys=True) + "\n")
 
 
-def calibration_set(root: Path | None = None) -> tuple[questions.Question, ...]:
-    """A fixed, stratified sample of the question set.
+def calibration_set(root: Path | None = None) -> tuple[tuple[questions.Question, str], ...]:
+    """A fixed, stratified sample of questions, each paired with one model.
 
     Stratified rather than random over the whole set, because the strata are
     not equally hard and a judge that agrees on lookups while missing every
     refusal would average out to something that looks fine.
+
+    Each question appears once, so a labeling round stays 42 items rather than
+    84. Variants alternate within each stratum, which keeps both models present
+    in every stratum instead of concentrating the weak model in whichever ones
+    the shuffle happened to give it.
     """
     loaded = questions.load(root)
     # S311: determinism is the requirement, not unpredictability. The same 42
-    # answers have to come out on every machine and in both rounds.
+    # items have to come out on every machine and in both rounds.
     rng = random.Random(CALIBRATION_SEED)  # noqa: S311
-    chosen: list[questions.Question] = []
+    chosen: list[tuple[questions.Question, str]] = []
     for stratum in sorted(loaded.strata):
         pool = sorted(loaded.of_stratum(stratum), key=lambda q: q.qid)
-        chosen.extend(rng.sample(pool, min(PER_STRATUM, len(pool))))
-    return tuple(sorted(chosen, key=lambda q: q.qid))
+        picked = sorted(rng.sample(pool, min(PER_STRATUM, len(pool))), key=lambda q: q.qid)
+        for offset, question in enumerate(picked):
+            chosen.append((question, CALIBRATION_VARIANTS[offset % len(CALIBRATION_VARIANTS)]))
+    return tuple(sorted(chosen, key=lambda pair: pair[0].qid))
 
 
 def _prompt(text: str, valid: dict[str, str]) -> str | None:
@@ -113,10 +129,10 @@ def _prompt(text: str, valid: dict[str, str]) -> str | None:
         print(f"  not one of {options}")
 
 
-def label_session(round_number: int, variant: str, root: Path | None = None) -> int:
+def label_session(round_number: int, root: Path | None = None) -> int:
     corpus_version = corpus.load(root).version
     already = {label.qid for label in read_labels(round_number, root)}
-    pending = [q for q in calibration_set(root) if q.qid not in already]
+    pending = [pair for pair in calibration_set(root) if pair[0].qid not in already]
 
     if not pending:
         print(f"round {round_number}: nothing left to label.")
@@ -126,7 +142,7 @@ def label_session(round_number: int, variant: str, root: Path | None = None) -> 
     print("You are grading the ANSWER against WHAT THE DOCUMENTS SAY.")
     print("Tone and length are not part of correctness. Ctrl-C or q stops; progress is kept.\n")
 
-    for number, question in enumerate(pending, start=1):
+    for number, (question, variant) in enumerate(pending, start=1):
         answer = answers.read_cached(question.qid, variant, 0, corpus_version, question.text, root)
         if answer is None:
             print(f"  skipping {question.qid}: no cached answer")
@@ -169,7 +185,10 @@ def label_session(round_number: int, variant: str, root: Path | None = None) -> 
 
 def status(root: Path | None = None) -> int:
     target = calibration_set(root)
+    spread = Counter(variant for _, variant in target)
     print(f"calibration set: {len(target)} answers, stratified {PER_STRATUM} per stratum")
+    for variant, count in sorted(spread.items()):
+        print(f"    {count:3} from {variant}")
     for round_number in (1, 2):
         labels = read_labels(round_number, root)
         print(f"  round {round_number}: {len(labels)}/{len(target)} labeled")
@@ -181,12 +200,11 @@ def status(root: Path | None = None) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Label the calibration set by hand")
     parser.add_argument("--round", type=int, choices=(1, 2), help="which labeling round")
-    parser.add_argument("--variant", default="claude-opus-5", choices=answers.VARIANTS)
     parser.add_argument("--status", action="store_true")
     args = parser.parse_args()
     if args.status or args.round is None:
         return status()
-    return label_session(args.round, args.variant)
+    return label_session(args.round)
 
 
 if __name__ == "__main__":
