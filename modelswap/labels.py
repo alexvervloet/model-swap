@@ -46,7 +46,7 @@ PER_STRATUM = 7
 # would agree on almost everything, kappa would be undefined, and the floor
 # would refuse to certify a judge nobody had actually tested. Calibrating on the
 # range of quality the judge has to grade means including the weaker end of it.
-CALIBRATION_VARIANTS = ("claude-opus-5", "claude-haiku-4-5")
+CALIBRATION_VARIANTS = ("claude-sonnet-5", "claude-haiku-4-5")
 
 
 @dataclass(frozen=True)
@@ -90,6 +90,9 @@ def append_label(label: Label, root: Path | None = None) -> None:
 
 def calibration_set(root: Path | None = None) -> tuple[tuple[questions.Question, str], ...]:
     """A fixed, stratified sample of questions, each paired with one model.
+
+    The two are the study's two candidates, so the judge is calibrated on the
+    same range of quality it will be asked to grade.
 
     Stratified rather than random over the whole set, because the strata are
     not equally hard and a judge that agrees on lookups while missing every

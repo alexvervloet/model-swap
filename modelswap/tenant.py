@@ -86,7 +86,17 @@ class IndexState:
 
 
 def state_path(root: Path | None = None) -> Path:
-    return (root or repo_root()) / "cache" / "index.json"
+    """One record per database, not one per checkout.
+
+    It was a single `index.json` at first, which meant the test suite's mock
+    load overwrote the record describing the measurement database and the next
+    real run refused itself. The record describes one database, so it is named
+    after the one it describes. Third time this project has learned that shared
+    mutable state wants splitting rather than sequencing; see LESSONS 8 and 9.
+    """
+    from modelswap import database  # noqa: PLC0415
+
+    return (root or repo_root()) / "cache" / f"index-{database.configured_name()}.json"
 
 
 def record_index(state: IndexState, root: Path | None = None) -> None:

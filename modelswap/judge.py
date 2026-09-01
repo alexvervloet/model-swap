@@ -1,6 +1,6 @@
 """Grade an answer against the corpus, with a rubric that can be argued with.
 
-    python -m modelswap.judge --variant claude-opus-5 --samples 1 --confirm
+    python -m modelswap.judge --variant claude-sonnet-5 --samples 1 --confirm
 
 The judge is a model, so it is a measuring instrument with its own error. It
 gets calibrated against human labels before anything it says is trusted; see
@@ -41,7 +41,21 @@ from pydantic import BaseModel
 from modelswap import answers, corpus, questions
 from modelswap.sut import ensure_importable, repo_root
 
-JUDGE_MODEL = "claude-opus-5"
+# The arbiter. Sonnet rather than Opus: this is a portfolio project, and a
+# judge that costs five times more per verdict than the answers it grades is the
+# wrong shape for it.
+#
+# The cost of that choice, stated rather than buried: Sonnet is also one of the
+# two candidates, so the judge is grading its own output half the time. Self-
+# preference bias was already unavoidable within one provider family; now it is
+# the sharpest version of itself. The calibration report is what tests whether
+# it matters, and if the judge agrees with a person on Haiku's answers and not
+# on Sonnet's, that shows up as a stratum of disagreement rather than as a
+# claim nobody checked.
+JUDGE_MODEL = "claude-sonnet-5"
+
+# A hard ceiling per run, in dollars. Judging is the cost everybody forgets.
+MAX_SPEND_USD = 1.00
 
 RUBRIC = """\
 You are grading one answer produced by a document-grounded assistant for a \
@@ -185,12 +199,18 @@ def to_judgment(question: questions.Question, answer: answers.Answer, verdict: V
 def estimate(pending: int) -> float:
     """Judging is not free and is easy to forget in a budget.
 
-    About 400 input and 120 output tokens per verdict, at Opus rates.
+    About 400 input and 120 output tokens per verdict, at the judge's own rates.
     """
-    return pending * (400 / 1e6 * 5.0 + 120 / 1e6 * 25.0)
+    return pending * (400 / 1e6 * 2.0 + 120 / 1e6 * 10.0)
 
 
-def run(variant: str, samples: int, confirm: bool, root: Path | None = None) -> int:
+def run(
+    variant: str,
+    samples: int,
+    confirm: bool,
+    max_spend: float = MAX_SPEND_USD,
+    root: Path | None = None,
+) -> int:
     ensure_importable()
     from knowledge_desk.config import settings  # noqa: PLC0415
 
@@ -220,7 +240,15 @@ def run(variant: str, samples: int, confirm: bool, root: Path | None = None) -> 
     if not todo:
         return 0
 
-    print(f"estimated cost: ${estimate(len(todo)):.2f}")
+    projected = estimate(len(todo))
+    print(f"estimated cost: ${projected:.2f}")
+    if projected > max_spend:
+        print(
+            f"refusing: ${projected:.2f} is over the ${max_spend:.2f} ceiling."
+            " Raise it deliberately with --max-spend.",
+            file=sys.stderr,
+        )
+        return 1
     if not confirm:
         print("pass --confirm to spend it.", file=sys.stderr)
         return 1
@@ -253,8 +281,14 @@ def main() -> int:
     parser.add_argument("--variant", required=True, choices=answers.VARIANTS)
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--confirm", action="store_true")
+    parser.add_argument(
+        "--max-spend",
+        type=float,
+        default=MAX_SPEND_USD,
+        help=f"dollars this run may spend before it refuses (default {MAX_SPEND_USD})",
+    )
     args = parser.parse_args()
-    return run(args.variant, args.samples, args.confirm)
+    return run(args.variant, args.samples, args.confirm, args.max_spend)
 
 
 if __name__ == "__main__":

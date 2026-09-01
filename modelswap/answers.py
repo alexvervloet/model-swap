@@ -27,7 +27,18 @@ from modelswap.sut import ensure_importable, repo_root
 # Every candidate this study knows how to price and run. Kept here rather than
 # taken from the command line unchecked, so a typo is a refusal rather than a
 # run billed at the wrong rate under a model that does not exist.
-VARIANTS = ("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5")
+#
+# Opus is deliberately absent. At $5/$25 per million tokens it is five times
+# Sonnet's input price, and one exploratory afternoon on it cost more than this
+# project's whole budget. The comparison that matters to a real migration is
+# the one where somebody is trying to spend less, and that is Sonnet against
+# Haiku.
+VARIANTS = ("claude-sonnet-5", "claude-haiku-4-5")
+
+# A hard ceiling per run, in dollars. A run that wants more than this is a
+# mistake rather than an ambition, and it should say so before spending rather
+# than after. Raise it deliberately with --max-spend, never by editing this.
+MAX_SPEND_USD = 1.50
 
 
 @dataclass(frozen=True)
@@ -119,15 +130,23 @@ def generate_one(scope: Any, question: questions.Question, k: int) -> dict[str, 
 def estimate(pending: int) -> float:
     """Rough dollars for the answers still to generate.
 
-    Measured, not guessed: roughly 3,000 input and 150 output tokens per answer
-    on this corpus at k=6, taken from real runs. Opus rates, so the estimate
-    over-states a Sonnet or Haiku run rather than under-stating it.
+    Measured, not guessed: roughly 3,000 input and 200 output tokens per answer
+    on this corpus at k=6, taken from 240 real ones. Priced at Sonnet, the
+    dearest model still in play, so the number shown before spending is never
+    lower than what gets spent.
     """
-    per_answer = 3000 / 1e6 * 5.0 + 150 / 1e6 * 25.0
+    per_answer = 3000 / 1e6 * 2.0 + 200 / 1e6 * 10.0
     return pending * per_answer
 
 
-def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = None) -> int:
+def run(
+    variant: str,
+    samples: int,
+    k: int,
+    confirm: bool,
+    max_spend: float = MAX_SPEND_USD,
+    root: Path | None = None,
+) -> int:
     ensure_importable()
     from knowledge_desk.config import settings  # noqa: PLC0415
     from knowledge_desk.db import close_pool  # noqa: PLC0415
@@ -172,7 +191,15 @@ def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = N
         if not todo:
             return 0
 
-        print(f"estimated cost: ${estimate(len(todo)):.2f} (Opus rates, so an upper bound)")
+        projected = estimate(len(todo))
+        print(f"estimated cost: ${projected:.2f} (Sonnet rates, so an upper bound)")
+        if projected > max_spend:
+            print(
+                f"refusing: ${projected:.2f} is over the ${max_spend:.2f} ceiling."
+                " Use fewer samples, or raise it deliberately with --max-spend.",
+                file=sys.stderr,
+            )
+            return 1
         if not confirm:
             print("pass --confirm to spend it.", file=sys.stderr)
             return 1
@@ -195,6 +222,16 @@ def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = N
             if answer.error:
                 failures += 1
             print("!" if answer.error else ".", end="", flush=True)
+            if spent > max_spend:
+                # The estimate was wrong, which is the case a ceiling exists
+                # for. Everything generated so far is cached, so stopping here
+                # loses nothing and the next run resumes.
+                print(
+                    f"\n\nstopping at ${spent:.2f}: over the ${max_spend:.2f} ceiling"
+                    f" after {index} of {len(todo)}. Answers so far are cached.",
+                    file=sys.stderr,
+                )
+                break
             if index % 40 == 0:
                 print(f"  {index}/{len(todo)}  ${spent:.2f}", flush=True)
     finally:
@@ -210,8 +247,14 @@ def main() -> int:
     parser.add_argument("--samples", type=int, default=1, help="answers per question")
     parser.add_argument("-k", type=int, default=6, help="retrieval depth")
     parser.add_argument("--confirm", action="store_true", help="actually spend money")
+    parser.add_argument(
+        "--max-spend",
+        type=float,
+        default=MAX_SPEND_USD,
+        help=f"dollars this run may spend before it stops (default {MAX_SPEND_USD})",
+    )
     args = parser.parse_args()
-    return run(args.variant, args.samples, args.k, args.confirm)
+    return run(args.variant, args.samples, args.k, args.confirm, args.max_spend)
 
 
 if __name__ == "__main__":

@@ -359,3 +359,49 @@ carries is a chance for the two to disagree. The label knew its variant; asking
 the caller to supply one as well created a second source of truth whose only
 possible contribution was to be wrong. When a function's argument can be derived
 from its input, deriving it is not a convenience, it removes a failure mode.
+
+## 12. An afternoon of testing cost more than a month of real use
+
+**What happened.** The account went from funded to empty in a few hours of
+exploratory runs. The bill was not one expensive thing, it was Opus everywhere:
+Opus generating 120 answers twice over after two outages, Opus judging them, and
+Opus as the default `answer_model` inherited from the system under test.
+
+**The arithmetic I never did.** Opus is $5 in and $25 out per million tokens.
+Sonnet is $2 and $10, Haiku $1 and $5. A pass over this question set costs $2.60
+on Opus and $0.96 on Sonnet, and every failed run cost the same as a good one.
+Nothing in the project stopped, or even mentioned, a second full-price rerun.
+
+**What was wrong with the design, not just the spending.** The study was framed
+as Opus against Sonnet against Haiku, as though the interesting question were
+whether a better model is better. Nobody migrates in that direction under cost
+pressure. The real question is always whether the cheaper model is good enough,
+and answering it does not require the expensive one to be in the study at all.
+Dropping Opus made the project cheaper and the question sharper at the same
+time, which is usually a sign the original framing was carrying weight it had
+not earned.
+
+**Three guards now, in order of how much they help.**
+
+A ceiling, $1.50 for generation and $1.00 for judging, checked against the
+estimate *before* the first call and against actual spend *during* the run. A
+`--samples 5` pass costs $4.80 and is refused rather than reported afterwards.
+
+An estimate priced at the dearest model still in play, so it over-states rather
+than under-states.
+
+`ANSWER_MODEL` pinned to Sonnet in the one place every entry point already goes
+through, because the system under test defaults to Opus and any code path that
+forgot to set a variant would have quietly used it.
+
+**The general form.** A cost estimate printed after the fact is a receipt. The
+control is a number the code refuses to exceed, and it has to be checked before
+the spending starts, because by the time a total is worth reading it has already
+been paid.
+
+**And the cheaper lesson.** `cache/index.json` recorded which index had been
+built, globally, while describing one specific database. The test suite's mock
+load overwrote the record for the measurement database, and the next real run
+refused itself. Same shape as LESSONS 8 and 9 for the third time: state shared
+between two things that should not see each other. It is now named after the
+database it describes. I appear to need to learn this once per storage layer.

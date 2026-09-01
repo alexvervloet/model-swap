@@ -75,12 +75,12 @@ def test_a_different_corpus_version_is_a_miss(tmp_path: Path) -> None:
 
 
 def test_variants_do_not_share_a_cache_entry(tmp_path: Path) -> None:
-    answers.write_cached(_answer(variant="claude-opus-5", text="opus"), tmp_path)
+    answers.write_cached(_answer(variant="claude-sonnet-5", text="sonnet"), tmp_path)
     answers.write_cached(_answer(variant="claude-haiku-4-5", text="haiku"), tmp_path)
 
-    opus = answers.read_cached(
+    sonnet = answers.read_cached(
         "single-adult-fare-kilomre",
-        "claude-opus-5",
+        "claude-sonnet-5",
         0,
         "abc123def456",
         "How much is a ticket?",
@@ -94,7 +94,7 @@ def test_variants_do_not_share_a_cache_entry(tmp_path: Path) -> None:
         "How much is a ticket?",
         tmp_path,
     )
-    assert (opus.text, haiku.text) == ("opus", "haiku")  # type: ignore[union-attr]
+    assert (sonnet.text, haiku.text) == ("sonnet", "haiku")  # type: ignore[union-attr]
 
 
 def test_samples_do_not_share_a_cache_entry(tmp_path: Path) -> None:
@@ -122,13 +122,23 @@ def test_samples_do_not_share_a_cache_entry(tmp_path: Path) -> None:
     assert (first.text, second.text) == ("first", "second")  # type: ignore[union-attr]
 
 
-def test_the_estimate_is_an_upper_bound_priced_at_opus() -> None:
-    """It quotes Opus rates whatever the variant, so the number shown before
+def test_the_estimate_is_priced_at_the_dearest_model_in_play() -> None:
+    """It quotes Sonnet rates whatever the variant, so the number shown before
     spending is never lower than what gets spent."""
     assert answers.estimate(0) == 0
     assert answers.estimate(120) > answers.estimate(60) > 0
-    # 120 answers on this corpus should be single-digit dollars, not tens.
-    assert 1.0 < answers.estimate(120) < 10.0
+    # A full pass over the question set is about a dollar, and the ceiling is
+    # set so that one fits under it and a careless --samples 5 does not.
+    assert 0.5 < answers.estimate(120) < answers.MAX_SPEND_USD
+    assert answers.estimate(120 * 5) > answers.MAX_SPEND_USD
+
+
+def test_opus_is_not_a_candidate() -> None:
+    """Removed on purpose. One exploratory afternoon on Opus cost more than
+    this project's entire budget, and the migration question worth asking is
+    the one where somebody is trying to spend less."""
+    assert "claude-opus-5" not in answers.VARIANTS
+    assert answers.VARIANTS == ("claude-sonnet-5", "claude-haiku-4-5")
 
 
 def test_a_failed_generation_is_not_a_cache_hit(tmp_path: Path) -> None:
@@ -209,3 +219,23 @@ def test_edited_documents_invalidate_the_index(tmp_path: Path) -> None:
     )
 
     assert "documents on disk" in (tenant.verify_index("xyz", "org-1", tmp_path) or "")
+
+
+def test_the_ceiling_is_low_enough_to_matter() -> None:
+    """The credit balance went from fine to empty inside one afternoon, so the
+    ceiling has to sit below the runs that would do that, not above them."""
+    one_pass = answers.estimate(120)
+    five_samples = answers.estimate(120 * 5)
+
+    assert one_pass < answers.MAX_SPEND_USD, "a single pass has to fit"
+    assert five_samples > answers.MAX_SPEND_USD, "a careless --samples 5 must not"
+    assert answers.MAX_SPEND_USD <= 2.0, "this is a portfolio project"
+
+
+def test_the_judge_has_its_own_ceiling() -> None:
+    """Judging is the cost everybody forgets: it is a second model call per
+    answer, and it scales with samples the same way generation does."""
+    from modelswap import judge
+
+    assert judge.estimate(240) < judge.MAX_SPEND_USD
+    assert judge.MAX_SPEND_USD <= 2.0

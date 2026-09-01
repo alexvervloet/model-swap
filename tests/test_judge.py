@@ -58,7 +58,7 @@ def test_the_prompt_carries_the_reference_and_never_the_model() -> None:
 
     assert "£9.40, adult single." in prompt
     assert "an answer" in prompt
-    for variant in ("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"):
+    for variant in ("claude-sonnet-5", "claude-haiku-4-5"):
         assert variant not in prompt
 
 
@@ -83,3 +83,10 @@ def test_the_rubric_version_covers_the_judge_model() -> None:
     the words, so both are in the key that invalidates the cache."""
     assert len(judge.RUBRIC_VERSION) == 64
     assert judge.digest(judge.RUBRIC) != judge.RUBRIC_VERSION
+
+
+def test_the_judge_is_not_opus() -> None:
+    """The arbiter came down a tier with everything else. The cost of that is
+    that the judge is now also a candidate, which the calibration report is
+    what tests."""
+    assert judge.JUDGE_MODEL == "claude-sonnet-5"

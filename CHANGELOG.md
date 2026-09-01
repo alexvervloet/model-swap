@@ -2,7 +2,22 @@
 
 ## Unreleased
 
+### Changed
+- Claude Opus is no longer a candidate or the judge. Every tier moved down one:
+  Sonnet is the arbiter and the strong candidate, Haiku the weak one. Opus costs
+  five times Sonnet's input price, and the migration question worth asking is
+  whether the cheaper model is good enough, which does not need the expensive
+  one in the study.
+- `ANSWER_MODEL` is pinned to Sonnet in `modelswap.database`, so no code path
+  can reach Opus by inheriting the system under test's default.
+- Cost estimates are priced at Sonnet, the dearest model in play, rather than
+  at Opus.
+
 ### Added
+- A hard spend ceiling: $1.50 per generation run, $1.00 per judging run, checked
+  against the estimate before the first call and against actual spend during the
+  run. A run that exceeds it stops and keeps what it has.
+- `--max-spend` to raise either ceiling deliberately.
 - `modelswap.agreement`: self-agreement, judge-vs-human agreement and Cohen's
   kappa, against a floor declared before any label existed.
 - `modelswap.labels`: two-round blind human labeling of a fixed, stratified
@@ -32,6 +47,9 @@
   mypy, a secret scan of the full history, and an advisory dependency audit.
 
 ### Fixed
+- The index record is named after the database it describes. It was a single
+  global file, so the test suite's mock load overwrote the record for the
+  measurement database and the next real run refused itself.
 - A failed generation is no longer returned as a cache hit. An outage would
   otherwise have been scored as the model's output.
 

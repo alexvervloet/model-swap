@@ -21,6 +21,13 @@ from __future__ import annotations
 
 import os
 
+# The strongest model this project is allowed to call. knowledge-desk defaults
+# `answer_model` to Opus, which is five times Sonnet's input price and twenty-
+# five times Haiku's. Pinned here, in the one place every entry point goes
+# through, so no path can reach Opus by forgetting to set a variant. This is a
+# portfolio project; the study is Sonnet against Haiku.
+DEFAULT_ANSWER_MODEL = "claude-sonnet-5"
+
 DB_NAME = "model_swap"
 
 # Tests reset tenants and reload with mock embeddings, so they cannot share the
@@ -58,6 +65,7 @@ def configure(name: str = DB_NAME) -> None:
     owner, app = urls(name)
     os.environ.setdefault("DATABASE_URL", owner)
     os.environ.setdefault("APP_DATABASE_URL", app)
+    os.environ.setdefault("ANSWER_MODEL", DEFAULT_ANSWER_MODEL)
 
 
 def configured_name() -> str:

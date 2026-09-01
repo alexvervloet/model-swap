@@ -24,7 +24,7 @@ def _workspace(tmp_path: Path) -> Path:
 def _label(**overrides: object) -> labels.Label:
     fields: dict[str, object] = {
         "qid": "q1",
-        "variant": "claude-opus-5",
+        "variant": "claude-sonnet-5",
         "sample": 0,
         "answer_digest": judge.digest("an answer"),
         "correct": True,

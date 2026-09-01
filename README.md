@@ -68,14 +68,36 @@ reported, not argued away.
 
 This is the first project here that has to spend real money. The subject is
 output variance and a mock provider has none, so a keyless run would be
-measuring nothing.
+measuring nothing. It is still a portfolio project, and the whole thing is meant
+to cost a couple of dollars.
 
-Generation happens once and is cached on disk. Rescoring a cached run against a
-new rubric is free and offline, and the response set ships as a committed
-fixture so every published number reproduces without a key.
+**Opus is not a candidate.** At $5/$25 per million tokens it is five times
+Sonnet's input price, and one afternoon of exploratory runs on it cost more than
+this project's entire budget. The comparison that matters to a real migration is
+the one where somebody is trying to spend less, so the study is Sonnet against
+Haiku and the judge is Sonnet too.
 
-Any command that spends estimates first, prints the estimate, and requires
-`--confirm`.
+| | Input $/1M | Output $/1M | Role |
+|---|---|---|---|
+| claude-sonnet-5 | $2.00 | $10.00 | candidate, and the judge |
+| claude-haiku-4-5 | $1.00 | $5.00 | candidate |
+
+A full pass over the 120 questions costs about $0.96 on Sonnet and $0.30 on
+Haiku. Judging both costs about $0.48.
+
+Three things keep it there:
+
+**Generation happens once and is cached.** Rescoring a cached run against a new
+rubric is free and offline.
+
+**Every spending command estimates first**, prints the number, and does nothing
+without `--confirm`. The estimate is priced at Sonnet, the dearest model in
+play, so it is never lower than what gets spent.
+
+**There is a hard ceiling**, $1.50 for generation and $1.00 for judging. A run
+whose estimate exceeds it refuses before the first call, and a run that exceeds
+it anyway stops mid-flight and keeps what it has. `--samples 5` costs $4.80 and
+is refused, which is the mistake the ceiling exists for.
 
 ## The corpus
 
@@ -130,8 +152,8 @@ phrased in passenger language rather than vessel language. See LESSONS 7.
 ## Grading
 
 ```bash
-python -m modelswap.answers --variant claude-opus-5 --samples 1 --confirm
-python -m modelswap.judge   --variant claude-opus-5 --samples 1 --confirm
+python -m modelswap.answers --variant claude-sonnet-5 --samples 1 --confirm
+python -m modelswap.judge   --variant claude-sonnet-5 --samples 1 --confirm
 python -m modelswap.labels  --round 1      # you, by hand
 python -m modelswap.agreement              # is the judge worth listening to?
 ```
@@ -156,29 +178,29 @@ Generated so far, against the real system under test with real embeddings:
 
 | Variant | Answers | Cost | Judged |
 |---|---|---|---|
-| claude-opus-5 | 120 | $2.60 | 120 |
-| claude-haiku-4-5 | 120 | $0.30 | 50 of 120 |
+| claude-haiku-4-5 | 120 | $0.30 | pending, under the new rubric |
+| claude-sonnet-5 | pending, ~$0.96 | | |
 
-Opus answers this corpus correctly 118 times out of 120. That is a problem
-before it is a result: a calibration set drawn from it alone would be 41 correct
-answers and one wrong one, the human and the judge would agree on nearly
-everything, Cohen's kappa would be undefined, and the floor would refuse to
-certify a judge nobody had actually tested. The calibration set is drawn from
-two models for that reason.
+An exploratory pass on Opus, before it was dropped as too expensive for this
+project, answered the corpus correctly 118 times out of 120. That was a problem
+before it was a result: a calibration set drawn from one strong model is 41
+correct answers and one wrong one, the human and the judge agree on nearly
+everything, Cohen's kappa is undefined, and the floor refuses to certify a judge
+nobody actually tested. The calibration set draws from both candidates for that
+reason.
 
-The two it got wrong are the interesting part, because both landed in strata
-invented to catch exactly them. It refused a question the documents answer
-("can I bring a horse across to Kilmore" — livestock are named and excluded),
-and it reported the refit schedule correctly while denying the documented link
-between refits and the reduced winter service.
+The two it got wrong are worth keeping, because both landed in strata invented
+to catch exactly them. It refused a question the documents answer ("can I bring
+a horse across to Kilmore" — livestock are named and excluded), and it reported
+the refit schedule correctly while denying the documented link between refits
+and the reduced winter service.
 
-**Blocked on two things.** The Anthropic account ran out of credit 50 verdicts
-into judging Haiku, so the comparison is incomplete. And the human labels, which
-are two rounds weeks apart and are the one part of this that cannot be automated
-or hurried.
+**Blocked on two things.** The Anthropic account is out of credit; finishing
+the comparison needs about $1.44. And the human labels, which are two rounds
+weeks apart and are the one part of this that cannot be automated or hurried.
 
-Eleven write-ups in [LESSONS.md](LESSONS.md), including three defects found in
+Twelve write-ups in [LESSONS.md](LESSONS.md), including three defects found in
 the system under test and fixed there, one outage I caused by ignoring a hazard
 I had written down forty minutes earlier, one cache that would have reported an
-outage as a quality regression, and one report that was quietly reading half the
-data it claimed to.
+outage as a quality regression, one report that was quietly reading half the
+data it claimed to, and the afternoon that emptied the account.
