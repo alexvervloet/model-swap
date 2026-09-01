@@ -17,6 +17,7 @@ import argparse
 import json
 import sys
 import time
+from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,16 @@ from modelswap.sut import ensure_importable, repo_root
 # the one where somebody is trying to spend less, and that is Sonnet against
 # Haiku.
 VARIANTS = ("claude-sonnet-5", "claude-haiku-4-5")
+
+# Models whose answers are already on disk and paid for, and which will never be
+# generated again. Opus produced a full pass before it was dropped as too
+# expensive; those 120 answers cost $2.60 and throwing them away would not
+# refund a penny. They are readable, gradeable, and reportable as a reference
+# arm, and they are not candidates: nothing here can spend money on them.
+REFERENCE_VARIANTS = ("claude-opus-5",)
+
+# Anything a reader may look at, whether or not a writer may produce it.
+READABLE = VARIANTS + REFERENCE_VARIANTS
 
 # A hard ceiling per run, in dollars. A run that wants more than this is a
 # mistake rather than an ambition, and it should say so before spending rather
@@ -86,6 +97,22 @@ def read_cached(
         # model's fault. The next run regenerates it.
         return None
     return Answer(**record)
+
+
+def iter_cached(root: Path | None = None) -> Iterator[Answer]:
+    """Every successful cached answer, whatever variant or corpus produced it.
+
+    Errored records are skipped here for the same reason `read_cached` refuses
+    them: they are kept to be read by a person, never counted as output.
+    """
+    base = cache_dir(root)
+    if not base.is_dir():
+        return
+    for path in sorted(base.rglob("*.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        if record.get("error"):
+            continue
+        yield Answer(**record)
 
 
 def write_cached(answer: Answer, root: Path | None = None) -> None:

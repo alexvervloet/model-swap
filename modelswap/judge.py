@@ -109,6 +109,11 @@ class Judgment:
     reasoning: str
     rubric_version: str
     answer_digest: str
+    # Which model produced this verdict. Defaulted rather than required because
+    # the first 170 verdicts predate the field: the rubric hash covers the judge
+    # model, so two rubrics could always be told apart, but nothing on disk said
+    # which model either one was. A hash is an identity, not a description.
+    judge_model: str = ""
 
     @property
     def metrics(self) -> dict[str, bool]:
@@ -124,14 +129,41 @@ def cache_dir(root: Path | None = None) -> Path:
     return (root or repo_root()) / "cache" / "judgments"
 
 
-def _path(root: Path | None, variant: str, sample: int, qid: str) -> Path:
-    return cache_dir(root) / RUBRIC_VERSION[:12] / variant / f"s{sample}" / f"{qid}.json"
+def _path(
+    root: Path | None, variant: str, sample: int, qid: str, rubric: str | None = None
+) -> Path:
+    return (
+        cache_dir(root) / (rubric or RUBRIC_VERSION)[:12] / variant / f"s{sample}" / f"{qid}.json"
+    )
+
+
+def archived_rubrics(root: Path | None = None) -> list[str]:
+    """Rubric versions with verdicts on disk, other than the current one.
+
+    Verdicts from a retired rubric are not stale data to be swept up. Two
+    rubrics over the same answers is a measurement of the judges themselves,
+    which is otherwise expensive to obtain and which this project happens to
+    have paid for already.
+    """
+    base = cache_dir(root)
+    if not base.is_dir():
+        return []
+    return sorted(
+        directory.name
+        for directory in base.iterdir()
+        if directory.is_dir() and directory.name != RUBRIC_VERSION[:12]
+    )
 
 
 def read_cached(
-    qid: str, variant: str, sample: int, answer_digest: str, root: Path | None = None
+    qid: str,
+    variant: str,
+    sample: int,
+    answer_digest: str,
+    root: Path | None = None,
+    rubric: str | None = None,
 ) -> Judgment | None:
-    path = _path(root, variant, sample, qid)
+    path = _path(root, variant, sample, qid, rubric)
     if not path.is_file():
         return None
     record = json.loads(path.read_text(encoding="utf-8"))
@@ -193,6 +225,7 @@ def to_judgment(question: questions.Question, answer: answers.Answer, verdict: V
         reasoning=verdict.reasoning,
         rubric_version=RUBRIC_VERSION,
         answer_digest=digest(answer.text),
+        judge_model=JUDGE_MODEL,
     )
 
 
@@ -278,7 +311,9 @@ def run(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Grade cached answers")
-    parser.add_argument("--variant", required=True, choices=answers.VARIANTS)
+    # READABLE, not VARIANTS: the archived Opus answers can still be graded,
+    # which is what turns $2.60 of stranded data into a reference arm.
+    parser.add_argument("--variant", required=True, choices=answers.READABLE)
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--confirm", action="store_true")
     parser.add_argument(
