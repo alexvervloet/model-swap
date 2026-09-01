@@ -68,8 +68,19 @@ def _check_database(settings: Any) -> bool:
         return False
     _ok(f"database reachable, {count} document(s) indexed")
     if count == 0:
-        print("       (seed it with `python -m knowledge_desk.seed` before measuring)")
+        print("       (load the corpus with `python -m modelswap.load`)")
     return True
+
+
+def _check_provider(settings: Any) -> None:
+    """Never a failure by itself. A mock provider is a fine way to exercise the
+    pipeline and a useless one to measure over, and the commands that would
+    measure refuse on their own."""
+    if settings.provider == "real":
+        _ok(f"provider: real ({settings.embed_model} embeddings, {settings.answer_model})")
+    else:
+        _ok("provider: mock. Enough to exercise the pipeline, not enough to score.")
+        print("       Set ANTHROPIC_API_KEY and VOYAGE_API_KEY, then reload with --reset.")
 
 
 def main() -> int:
@@ -86,6 +97,8 @@ def main() -> int:
     settings = _check_importable(sut)
     if settings is None or not _check_database(settings):
         failures += 1
+    else:
+        _check_provider(settings)
 
     print()
     if failures:
