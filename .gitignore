@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# The scratch plan for the duration of the work, not a repo artifact
+PLAN.md
+
+# Local notes, not part of the repo
+docs/education/
+
+# Generated runs. The committed fixture lives under fixtures/, everything a
+# local run produces lands here and is regenerable.
+runs/
+cache/
+
+# OS / editor
+.DS_Store
