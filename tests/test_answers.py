@@ -148,3 +148,64 @@ def test_a_failed_generation_is_not_a_cache_hit(tmp_path: Path) -> None:
     assert found is None
     # Still on disk to be read.
     assert list(tmp_path.rglob("*.json"))
+
+
+def test_an_unrecorded_index_is_refused(tmp_path: Path) -> None:
+    from modelswap import tenant
+
+    assert tenant.verify_index("abc", "org-1", tmp_path) is not None
+
+
+def test_a_reloaded_tenant_invalidates_the_index(tmp_path: Path) -> None:
+    """knowledge-desk mints a fresh org id on every tenant create, so a
+    different id means something reindexed the corpus since this record was
+    written. That is the failure a mock-embedding check cannot see."""
+    from modelswap import tenant
+
+    tenant.record_index(
+        tenant.IndexState(
+            org_id="org-1",
+            corpus_version="abc",
+            embed_model="voyage-3",
+            provider="real",
+            loaded_at="2026-09-01T00:00:00+00:00",
+        ),
+        tmp_path,
+    )
+
+    assert tenant.verify_index("abc", "org-1", tmp_path) is None
+    assert "reloaded" in (tenant.verify_index("abc", "org-2", tmp_path) or "")
+
+
+def test_a_mock_built_index_is_refused_even_with_a_real_key(tmp_path: Path) -> None:
+    from modelswap import tenant
+
+    tenant.record_index(
+        tenant.IndexState(
+            org_id="org-1",
+            corpus_version="abc",
+            embed_model="mock",
+            provider="mock",
+            loaded_at="2026-09-01T00:00:00+00:00",
+        ),
+        tmp_path,
+    )
+
+    assert "mock" in (tenant.verify_index("abc", "org-1", tmp_path) or "")
+
+
+def test_edited_documents_invalidate_the_index(tmp_path: Path) -> None:
+    from modelswap import tenant
+
+    tenant.record_index(
+        tenant.IndexState(
+            org_id="org-1",
+            corpus_version="abc",
+            embed_model="voyage-3",
+            provider="real",
+            loaded_at="2026-09-01T00:00:00+00:00",
+        ),
+        tmp_path,
+    )
+
+    assert "documents on disk" in (tenant.verify_index("xyz", "org-1", tmp_path) or "")

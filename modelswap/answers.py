@@ -132,6 +132,7 @@ def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = N
     from knowledge_desk.config import settings  # noqa: PLC0415
     from knowledge_desk.db import close_pool  # noqa: PLC0415
 
+    from modelswap import tenant  # noqa: PLC0415
     from modelswap.tenant import open_scope  # noqa: PLC0415
 
     if variant not in VARIANTS:
@@ -144,29 +145,41 @@ def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = N
     loaded_corpus = corpus.load(root)
     loaded_questions = questions.load(root)
 
-    todo = [
-        (question, sample)
-        for question in loaded_questions.questions
-        for sample in range(samples)
-        if read_cached(question.qid, variant, sample, loaded_corpus.version, question.text, root)
-        is None
-    ]
-    total = len(loaded_questions) * samples
-    print(f"{variant}: {total} answers wanted, {total - len(todo)} cached, {len(todo)} to generate")
-
-    if not todo:
-        return 0
-
-    print(f"estimated cost: ${estimate(len(todo)):.2f} (Opus rates, so an upper bound)")
-    if not confirm:
-        print("pass --confirm to spend it.", file=sys.stderr)
-        return 1
-
-    spent = 0.0
-    failures = 0
-    settings.answer_model = variant
+    # Before the estimate, not after the spend: an index built by something
+    # other than this project's loader retrieves passages unrelated to the
+    # question and says nothing about it. See LESSONS 9.
+    scope = open_scope()
     try:
-        scope = open_scope()
+        problem = tenant.verify_index(loaded_corpus.version, scope.org_id, root)
+        if problem:
+            print(f"refusing to generate: {problem}", file=sys.stderr)
+            return 1
+
+        todo = [
+            (question, sample)
+            for question in loaded_questions.questions
+            for sample in range(samples)
+            if read_cached(
+                question.qid, variant, sample, loaded_corpus.version, question.text, root
+            )
+            is None
+        ]
+        total = len(loaded_questions) * samples
+        print(
+            f"{variant}: {total} answers wanted, {total - len(todo)} cached,"
+            f" {len(todo)} to generate"
+        )
+        if not todo:
+            return 0
+
+        print(f"estimated cost: ${estimate(len(todo)):.2f} (Opus rates, so an upper bound)")
+        if not confirm:
+            print("pass --confirm to spend it.", file=sys.stderr)
+            return 1
+
+        spent = 0.0
+        failures = 0
+        settings.answer_model = variant
         for index, (question, sample) in enumerate(todo, start=1):
             result = generate_one(scope, question, k)
             answer = Answer(
@@ -181,8 +194,7 @@ def run(variant: str, samples: int, k: int, confirm: bool, root: Path | None = N
             spent += answer.cost_usd
             if answer.error:
                 failures += 1
-            marker = "!" if answer.error else "."
-            print(marker, end="", flush=True)
+            print("!" if answer.error else ".", end="", flush=True)
             if index % 40 == 0:
                 print(f"  {index}/{len(todo)}  ${spent:.2f}", flush=True)
     finally:

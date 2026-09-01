@@ -18,17 +18,11 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import UTC, datetime
 
-from modelswap import corpus, database
+from modelswap import corpus, database, tenant
 from modelswap.sut import ensure_importable
-
-ORG_SLUG = "meridian"
-ORG_NAME = "Meridian Ferries"
-OWNER_EMAIL = "owner@meridian.test"
-
-# S105: a throwaway login for a local demo tenant, matching the seed data in
-# the system under test. Nothing here reaches a deployment.
-OWNER_PASSWORD = "demo-password-123"  # noqa: S105
+from modelswap.tenant import ORG_NAME, ORG_SLUG, OWNER_EMAIL, OWNER_PASSWORD
 
 SOURCE = "model-swap-corpus"
 
@@ -103,6 +97,16 @@ def load(*, allow_mock: bool = False, reset: bool = False) -> int:
                 "select count(*) as n from chunks where org_id = %s", (org_id,)
             ).fetchone()["n"]
         print(f"  {chunks} chunks indexed, embedded by {'mock' if mock else settings.embed_model}")
+
+        tenant.record_index(
+            tenant.IndexState(
+                org_id=org_id,
+                corpus_version=loaded.version,
+                embed_model="mock" if mock else settings.embed_model,
+                provider=settings.provider,
+                loaded_at=datetime.now(UTC).isoformat(timespec="seconds"),
+            )
+        )
     finally:
         # The pool's finalizer cannot join its threads at interpreter shutdown
         # on 3.14, so a short-lived process closes it itself. The system under
