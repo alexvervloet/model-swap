@@ -85,14 +85,22 @@ Early. Scaffold and preflight only. Nothing measures anything yet.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
+pip install -r requirements.txt && pip install -e .
 
-# The system under test needs its database up. From the sibling checkout:
+# The system under test is imported, so its dependencies live in this venv too.
+pip install -r ../knowledge-desk/requirements.txt && pip install -e ../knowledge-desk
+
+# And it needs its database up:
 (cd ../knowledge-desk && docker compose up -d db && python -m knowledge_desk.migrate)
 
 python check_setup.py
 ```
+
+One virtualenv holds both dependency trees. That is a real constraint rather
+than a convenience: a version this repo wants and the system under test does
+not is a conflict you have to resolve, so this repo's own `requirements.txt`
+stays as small as it can.
+
 
 `check_setup.py` finds Knowledge Desk at `../knowledge-desk`, or wherever
 `KNOWLEDGE_DESK_PATH` points if you keep it somewhere else.
