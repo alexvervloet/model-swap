@@ -69,6 +69,11 @@ def read_cached(
     record = json.loads(path.read_text(encoding="utf-8"))
     if record.get("question") != question:
         return None
+    if record.get("error"):
+        # A failure is kept on disk to be read, never treated as an answer. It
+        # cost nothing to produce and scoring it would count an outage as the
+        # model's fault. The next run regenerates it.
+        return None
     return Answer(**record)
 
 

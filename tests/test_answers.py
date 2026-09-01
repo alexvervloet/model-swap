@@ -129,3 +129,22 @@ def test_the_estimate_is_an_upper_bound_priced_at_opus() -> None:
     assert answers.estimate(120) > answers.estimate(60) > 0
     # 120 answers on this corpus should be single-digit dollars, not tens.
     assert 1.0 < answers.estimate(120) < 10.0
+
+
+def test_a_failed_generation_is_not_a_cache_hit(tmp_path: Path) -> None:
+    """97 of one run's 120 answers failed when the database went out from under
+    it. Every one of those was written to the cache, and a rerun would have
+    reported them as already done and scored an outage as the model's fault."""
+    answers.write_cached(_answer(text="", error="Answer generation failed."), tmp_path)
+
+    found = answers.read_cached(
+        "single-adult-fare-kilomre",
+        "claude-sonnet-5",
+        0,
+        "abc123def456",
+        "How much is a ticket?",
+        tmp_path,
+    )
+    assert found is None
+    # Still on disk to be read.
+    assert list(tmp_path.rglob("*.json"))

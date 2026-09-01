@@ -75,7 +75,16 @@ def ensure_importable(root: Path | None = None) -> Path:
     followed README get there. This is the fallback for a checkout that is
     present but not installed, so the failure is "your database is down" rather
     than "no module named knowledge_desk".
+
+    Also points it at this project's own database. See `modelswap.database` for
+    why that is not optional.
     """
+    from modelswap import database  # noqa: PLC0415
+
+    # Before the import, not after: knowledge-desk reads the environment once,
+    # when `knowledge_desk.config` is first imported, and never again.
+    database.configure()
+
     path = find_sut(root)
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))

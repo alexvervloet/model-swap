@@ -19,7 +19,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from modelswap import corpus
+from modelswap import corpus, database
 from modelswap.sut import ensure_importable
 
 ORG_SLUG = "meridian"
@@ -45,9 +45,18 @@ MOCK_BANNER = """
 
 def load(*, allow_mock: bool = False, reset: bool = False) -> int:
     ensure_importable()
-    from knowledge_desk import accounts, ingest  # noqa: PLC0415
+    from knowledge_desk import accounts, ingest, migrate  # noqa: PLC0415
     from knowledge_desk.config import settings  # noqa: PLC0415
     from knowledge_desk.db import close_pool, connect  # noqa: PLC0415
+
+    # Our own database, created and migrated here rather than by a README step
+    # somebody can skip. See modelswap.database for why it is not shared.
+    if database.create():
+        print(f"  created database {database.DB_NAME}")
+    applied = migrate.apply_pending()
+    if applied:
+        print(f"  applied {len(applied)} migration(s)")
+    migrate.ensure_app_role()
 
     mock = settings.provider != "real"
     if mock and not allow_mock:
