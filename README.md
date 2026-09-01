@@ -77,9 +77,41 @@ fixture so every published number reproduces without a key.
 Any command that spends estimates first, prints the estimate, and requires
 `--confirm`.
 
+## The corpus
+
+The system under test ships with four documents of one sentence each. They prove
+a permission boundary and cannot support a measurement: every question over a
+one-sentence document is either a lookup any model passes or one no model can
+answer.
+
+So the corpus is authored here. Meridian Ferries is an invented regional ferry
+operator, 13 interlocking policy documents, and it is deliberately unlike a real
+company whose policies would already be in a model's training data. Its wind
+thresholds and refund tiers exist nowhere else, so an answer about them is
+either grounded in a retrieved passage or invented, with nothing in between.
+
+[corpus/README.md](corpus/README.md) covers why it is written by hand rather
+than generated, and [corpus/gaps.md](corpus/gaps.md) records the subjects left
+out on purpose, because a question is only unanswerable if you know what is
+absent.
+
+```bash
+python -m modelswap.load            # into the system under test
+```
+
+It refuses to run on mock embeddings. An index of deterministic fake vectors
+retrieves passages unrelated to the question, and a score over that is noise
+wearing a number.
+
 ## Status
 
-Early. Scaffold and preflight only. Nothing measures anything yet.
+Early. The corpus is written and loads into the system under test, with its
+version pinned by a hash so an edit invalidates a run rather than quietly
+changing what the numbers meant. Nothing is scored yet: no question set, no
+judge, no decision layer.
+
+Three defects so far, two of them mine and one in the system under test. They
+are in [LESSONS.md](LESSONS.md).
 
 ## Setup
 
