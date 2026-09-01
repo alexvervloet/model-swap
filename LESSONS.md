@@ -147,12 +147,17 @@ permanently unavailable, because signup enforces a unique email.
 So `--reset` deleted the tenant and then failed to recreate it:
 `duplicate key value violates unique constraint "users_email_key"`.
 
-**Worked around here** by deleting the owner row when nothing references it,
-scoped to this loader's own email. That is right for a local measurement
-harness and is not the right fix for the system under test, which has a
-decision to make about what "delete this tenant" means when the request is an
-erasure request and the surviving row holds an email address and a password
-hash.
+**Fixed upstream**, so the workaround is gone from this repo. knowledge-desk's
+`delete_org` and `TenantScope.remove_member` now both call
+`accounts.purge_stranded_users`, which deletes only the users the caller just
+affected and only when no membership remains. A member of another org keeps
+their account, which is the reason users are global in the first place. See
+that repo's LESSONS entry 44.
+
+The temporary version here deleted the owner row from another repo's table,
+which was the right call for an afternoon and the wrong one to keep. A
+workaround that reaches into someone else's schema is a bug report with a
+deadline.
 
 **What to do differently.** The thing that made this expensive to diagnose was
 that the first failure surfaced as a unique violation on `users` during

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import Any
 
 from modelswap import corpus
 from modelswap.sut import ensure_importable
@@ -42,26 +41,6 @@ MOCK_BANNER = """
   #  Set VOYAGE_API_KEY and re-run with --reset.                  #
   ################################################################
 """
-
-
-def _delete_orphaned_owner(connect: Any) -> None:
-    """Remove the tenant owner's user row if the tenant delete stranded it.
-
-    knowledge-desk's `delete_org` cascades everything org-scoped, and `users` is
-    deliberately not org-scoped, because one person can belong to several orgs.
-    The consequence for a single-org user is a row with no memberships: it can
-    never log in, and its email is permanently unavailable for signup, so the
-    next `--reset` fails on a unique violation rather than recreating anything.
-
-    Scoped as narrowly as it can be. Only this loader's own owner email, and
-    only when nothing else references it.
-    """
-    with connect() as conn:
-        conn.execute(
-            "delete from users where email = %s"
-            " and not exists (select 1 from memberships where user_id = users.id)",
-            (OWNER_EMAIL,),
-        )
 
 
 def load(*, allow_mock: bool = False, reset: bool = False) -> int:
@@ -92,10 +71,6 @@ def load(*, allow_mock: bool = False, reset: bool = False) -> int:
             row = None
 
         if row is None:
-            # Runs before every create, not only after a delete: an earlier
-            # reset that failed partway leaves the orphan behind, and the next
-            # run has no org to notice it from.
-            _delete_orphaned_owner(connect)
             ctx = accounts.create_org_with_owner(ORG_SLUG, ORG_NAME, OWNER_EMAIL, OWNER_PASSWORD)
             org_id = ctx.org_id
             print(f"  created tenant {ORG_SLUG} ({OWNER_EMAIL})")
