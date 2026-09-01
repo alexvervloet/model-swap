@@ -87,3 +87,77 @@ nothing.
 clears it is part of writing that module, not something to add after a red
 build. The general form: anything ambient (environment, cwd, clock, network,
 locale) is either set by the test or cleared by the test.
+
+## 4. The index went in on mock embeddings and said nothing
+
+**Expected.** Loading the corpus into the system under test was plumbing:
+create a tenant, sync the documents, drain the queue.
+
+**What happened.** It worked on the first run. Thirteen documents, 44 chunks,
+every job succeeded. It also embedded every chunk with knowledge-desk's
+deterministic mock embedder, because no `VOYAGE_API_KEY` was set, and the load
+reported success without mentioning it. Retrieval over that index returns
+passages unrelated to the question, so anything scored on it would have been
+noise dressed as a measurement.
+
+**Why it nearly got past.** knowledge-desk's mock fallback is loud in the
+places it was designed to be loud: its own preflight prints the provider mode,
+and the UI says so on screen. Called as a library from another repo, none of
+that is in the path. A guard that lives in the caller does not protect a
+different caller.
+
+**Fixed by** refusing outright. `python -m modelswap.load` exits non-zero under
+mock embeddings and prints what the index would be worth. `--mock` overrides it
+for exercising the pipeline, and prints the same banner anyway.
+
+**The second half, which was worse.** knowledge-desk reconciles documents on
+content hash, so an unchanged document is never re-embedded. Setting a real key
+and re-running therefore changes nothing at all: the corpus is already
+"in sync", and the vectors stay mock. A scored run would sit on the old
+embeddings with every surface reporting success. That is why the loader has
+`--reset`, and why it prints how many documents it actually re-embedded rather
+than only that the sync succeeded.
+
+**The general form.** A cache keyed on content is invalidated by content. It is
+not invalidated by the thing that turned the content into what you actually
+stored. Anywhere a derived artefact depends on a provider, a model, or a
+version, that dependency belongs in the key.
+
+## 5. A tenant delete leaves the owner behind, and the email is gone for good
+
+**Found in the system under test**, not in this repo.
+
+`accounts.delete_org` cascades everything org-scoped: memberships, documents,
+chunks, answers, audit records, sessions. `users` is deliberately not
+org-scoped, because one person can belong to several orgs, so the user row
+survives. For a user whose only membership was that org, what survives is an
+account with no memberships, which can never log in, and whose email is
+permanently unavailable, because signup enforces a unique email.
+
+So `--reset` deleted the tenant and then failed to recreate it:
+`duplicate key value violates unique constraint "users_email_key"`.
+
+**Worked around here** by deleting the owner row when nothing references it,
+scoped to this loader's own email. That is right for a local measurement
+harness and is not the right fix for the system under test, which has a
+decision to make about what "delete this tenant" means when the request is an
+erasure request and the surviving row holds an email address and a password
+hash.
+
+**What to do differently.** The thing that made this expensive to diagnose was
+that the first failure surfaced as a unique violation on `users` during
+*create*, several steps after the delete that caused it. A delete that strands
+a row should either remove it or say it kept it.
+
+## 6. A UUID is not a string, and row-level security notices
+
+Reading an existing org's id back from Postgres gives a `UUID` object, while
+`create_org_with_owner` returns one already stringified. The two paths through
+the loader therefore disagreed about the type, and the failure landed inside
+knowledge-desk's `connect()` as
+`function set_config(unknown, uuid, boolean) does not exist`, which reads like
+a database configuration problem and is not one.
+
+Only the already-exists path was affected, so the create path stayed green and
+the bug only appeared on the second run. Worth remembering when a first run
+passes: the second run is a different code path.
