@@ -14,6 +14,11 @@
   at Opus.
 
 ### Added
+- `modelswap.decision`: paired bootstrap on per-case outcomes, read against a
+  predeclared 5-point margin rather than against zero, with one error budget
+  split across the metric family. Verdicts are ship, do not ship, or
+  inconclusive with the number of extra pairs that would settle it. Prints the
+  smallest difference the sample can detect beside every verdict.
 - `modelswap.compare`: cost, latency, token counts and accuracy per variant,
   read from the cache with no API calls, no database and no key.
 - `modelswap.judges`: two judges over the same answers, with a

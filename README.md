@@ -168,6 +168,47 @@ None of its verdicts count until `agreement` says they do. The floor is 85%
 agreement with human labels and a Cohen's kappa of 0.60, both declared in the
 repository before the first label existed.
 
+## The decision
+
+```bash
+python -m modelswap.decision --control claude-sonnet-5 --candidate claude-haiku-4-5
+```
+
+Free to run, and it reads against a margin rather than against zero. Nobody
+migrates to a cheaper model hoping it is better, so the question is whether it is
+worse by more than you will accept. A candidate reliably two points worse is
+inside a five-point margin, and blocking that trade is how a cost saving dies to
+a difference nobody would notice.
+
+The margin is 5 percentage points, the family error budget is 5% split across
+three metrics, and the floor for a look is 30 pairs. All three are declared in
+`modelswap/decision.py`, committed before any comparison ran, and the git history
+is what makes them mean anything.
+
+The verdict is ship, do not ship, or **inconclusive with the number of extra
+cases that would settle it**. Inconclusive is a real answer and, at sample sizes
+this project can afford, the most likely one.
+
+### The finding that arrived before the comparison did
+
+At the spread two real models produce, 120 paired cases can resolve a difference
+of about **11.5%**. The declared margin is 5%, which needs roughly **636 pairs**.
+
+| pairs | smallest difference it can see |
+|---|---|
+| 40 | 19.9% |
+| 120 | 11.5% |
+| 300 | 7.3% |
+| 600 | 5.1% |
+
+So this suite cannot answer its own question at its own margin, and it could
+have told me that before I wrote a single question. The report prints that number
+next to every verdict, because a "ship" from a suite that cannot see the margin
+is not evidence and the only way a reader learns that is if it is on the screen.
+
+Three ways out, none of them free: more questions, a wider margin, or publishing
+inconclusive and saying why. That choice is the write-up.
+
 ## Status
 
 Built and tested: the corpus, the 120-question set, the answer runner, the

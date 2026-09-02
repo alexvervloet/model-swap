@@ -437,3 +437,43 @@ configuration you have abandoned is often the only independent sample you will
 ever have of that configuration, and independence is the expensive part. The
 question is never "do we still use this model", it is "what can only be measured
 by having two of something".
+
+## 14. The sample size was decidable before the corpus was written
+
+**What the plan said.** 120 questions, stratified six ways. The number came from
+what felt like enough to be credible without being unaffordable.
+
+**What the decision layer said, once it existed.** At the spread two real models
+produce on this corpus, 120 paired cases resolve a difference of about 11.5%.
+The margin declared for shipping is 5%, which needs roughly 636 pairs. The suite
+cannot answer the question it was built to answer, at the threshold it declared,
+and no amount of care in the questions changes that.
+
+**The part that stings.** This was arithmetic, not a discovery. `required_sample_size`
+is four lines and needs one input: a guess at how often the two models will
+differ. Twenty per cent would have been a fine guess. Running it before authoring
+would have taken a minute and returned 636, and the corpus would have been
+designed around that number or the margin would have been set somewhere the
+corpus could reach.
+
+Instead the calculation arrived in M4, three milestones after the decision it
+should have informed, as a verdict on work already finished.
+
+**What I did with it.** Not quietly widen the margin, which is the move that
+makes the number go away and the project worthless. The margin was declared
+before any comparison ran and it stays. The report prints the detectable
+difference next to every verdict, so a reader sees what the suite could see even
+in principle, and the write-up names the three ways out and which one was taken.
+
+**The general form.** Any measurement has a resolution, and the resolution is
+computable from the design before any of it is built. Do that arithmetic at the
+point where the design is still cheap to change. A study whose sample size was
+chosen by feel and justified afterwards is the ordinary way these go wrong, and
+the tell is that the power calculation appears in the analysis rather than in
+the protocol.
+
+**And the honest reframing.** A suite that cannot resolve 5% can still resolve
+20%, which is the difference between "this model is fine" and "this model is
+visibly broken on this workload". That is a smaller claim than the project set
+out to make and it is still worth making, as long as it is the claim that gets
+published.
