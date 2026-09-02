@@ -132,10 +132,29 @@ def _prompt(text: str, valid: dict[str, str]) -> str | None:
         print(f"  not one of {options}")
 
 
+def presentation_order(
+    round_number: int, root: Path | None = None
+) -> list[tuple[questions.Question, str]]:
+    """The calibration set, shuffled per round.
+
+    Round 2 must not be a re-run of round 1 in the same sequence. Order is a
+    recall cue: reaching item 30 and remembering what you said last time is not
+    a second independent judgement, and the whole value of the second round is
+    that it is independent. Seeded on the round number, so the order is stable
+    across sessions and machines while differing between rounds.
+    """
+    items = list(calibration_set(root))
+    # S311: reproducibility, not unpredictability.
+    random.Random(CALIBRATION_SEED + round_number).shuffle(items)  # noqa: S311
+    return items
+
+
 def label_session(round_number: int, root: Path | None = None) -> int:
     corpus_version = corpus.load(root).version
     already = {label.qid for label in read_labels(round_number, root)}
-    pending = [pair for pair in calibration_set(root) if pair[0].qid not in already]
+    pending = [
+        pair for pair in presentation_order(round_number, root) if pair[0].qid not in already
+    ]
 
     if not pending:
         print(f"round {round_number}: nothing left to label.")

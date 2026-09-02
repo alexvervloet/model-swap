@@ -218,3 +218,19 @@ def test_status_reports_both_rounds_and_the_spread(tmp_path, capsys) -> None:
     assert "42 answers" in out
     assert "round 1: 0/42" in out
     assert "claude-haiku-4-5" in out
+
+
+def test_the_two_rounds_present_the_same_items_in_different_orders() -> None:
+    """Reaching item 30 and remembering what you said last time is not a second
+    independent judgement, and independence is the only reason round 2 exists."""
+    first = [q.qid for q, _ in labels.presentation_order(1)]
+    second = [q.qid for q, _ in labels.presentation_order(2)]
+
+    assert sorted(first) == sorted(second)
+    assert first != second
+
+
+def test_a_round_presents_the_same_order_every_session() -> None:
+    """Labeling 42 items happens over several sittings. The order has to be
+    stable within a round or resuming reshuffles what is left."""
+    assert labels.presentation_order(1) == labels.presentation_order(1)
