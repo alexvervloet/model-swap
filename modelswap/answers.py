@@ -22,7 +22,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from modelswap import corpus, questions
+from modelswap import corpus, ledger, questions
 from modelswap.sut import ensure_importable, repo_root
 
 # Every candidate this study knows how to price and run. Kept here rather than
@@ -220,6 +220,11 @@ def run(
 
         projected = estimate(len(todo))
         print(f"estimated cost: ${projected:.2f} (Sonnet rates, so an upper bound)")
+        print(f"  budget: {ledger.summary(root)}")
+        blocked = ledger.headroom_for(projected, root)
+        if blocked:
+            print(f"refusing: {blocked}", file=sys.stderr)
+            return 1
         if projected > max_spend:
             print(
                 f"refusing: ${projected:.2f} is over the ${max_spend:.2f} ceiling."
@@ -264,7 +269,9 @@ def run(
     finally:
         close_pool()
 
+    ledger.record("answers", variant, len(todo), spent, root)
     print(f"\ndone: {len(todo)} generated, {failures} failed, ${spent:.4f} spent")
+    print(f"  budget: {ledger.summary(root)}")
     return 1 if failures else 0
 
 

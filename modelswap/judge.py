@@ -38,7 +38,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from modelswap import answers, corpus, questions
+from modelswap import answers, corpus, ledger, questions
 from modelswap.sut import ensure_importable, repo_root
 
 # The arbiter. Sonnet rather than Opus: this is a portfolio project, and a
@@ -198,7 +198,14 @@ def build_prompt(question: questions.Question, answer_text: str) -> str:
     )
 
 
-def judge_one(client: Any, question: questions.Question, answer_text: str) -> Verdict:
+# Judge rates, per million tokens. Its own model's, so the ledger records what
+# was actually spent rather than an estimate carried forward.
+JUDGE_INPUT_RATE = 2.0
+JUDGE_OUTPUT_RATE = 10.0
+
+
+def judge_one(client: Any, question: questions.Question, answer_text: str) -> tuple[Verdict, float]:
+    """One verdict, and what it cost. Judging is the spend everybody forgets."""
     response = client.messages.parse(
         model=JUDGE_MODEL,
         max_tokens=1024,
@@ -207,7 +214,11 @@ def judge_one(client: Any, question: questions.Question, answer_text: str) -> Ve
         output_format=Verdict,
     )
     parsed: Verdict = response.parsed_output
-    return parsed
+    usage = response.usage
+    cost = (
+        usage.input_tokens / 1e6 * JUDGE_INPUT_RATE + usage.output_tokens / 1e6 * JUDGE_OUTPUT_RATE
+    )
+    return parsed, cost
 
 
 def to_judgment(question: questions.Question, answer: answers.Answer, verdict: Verdict) -> Judgment:
@@ -275,6 +286,11 @@ def run(
 
     projected = estimate(len(todo))
     print(f"estimated cost: ${projected:.2f}")
+    print(f"  budget: {ledger.summary(root)}")
+    blocked = ledger.headroom_for(projected, root)
+    if blocked:
+        print(f"refusing: {blocked}", file=sys.stderr)
+        return 1
     if projected > max_spend:
         print(
             f"refusing: ${projected:.2f} is over the ${max_spend:.2f} ceiling."
@@ -289,9 +305,10 @@ def run(
     import anthropic  # noqa: PLC0415
 
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    spent = 0.0
     for index, (question, answer) in enumerate(todo, start=1):
         try:
-            verdict = judge_one(client, question, answer.text)
+            verdict, cost = judge_one(client, question, answer.text)
         except anthropic.APIStatusError as exc:
             # Every verdict so far is already on disk, so stopping here loses
             # nothing and the next run resumes. Crashing out of the loop used to
@@ -300,12 +317,16 @@ def run(
             # file order, which is the easy strata first.
             print(f"\n\nstopped after {index - 1} of {len(todo)}: {exc.message}", file=sys.stderr)
             print("verdicts so far are cached. Re-run to continue.", file=sys.stderr)
+            ledger.record("judge", variant, index - 1, spent, root)
             return 1
+        spent += cost
         write_cached(to_judgment(question, answer, verdict), root)
         print("." if verdict.correct else "x", end="", flush=True)
         if index % 40 == 0:
             print(f"  {index}/{len(todo)}", flush=True)
-    print()
+    ledger.record("judge", variant, len(todo), spent, root)
+    print(f"\ndone: {len(todo)} verdicts, ${spent:.4f} spent")
+    print(f"  budget: {ledger.summary(root)}")
     return 0
 
 
