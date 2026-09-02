@@ -41,7 +41,7 @@ exclude_also = [
 # paid paths: generation, judging and retrieval verification all need either a
 # database or an API key, and are exercised by running them rather than by a
 # test. A floor that was never raised is a floor nobody is using.
-fail_under = 75
+fail_under = 78
 show_missing = true
 
 [tool.ruff]
