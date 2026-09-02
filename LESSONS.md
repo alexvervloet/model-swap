@@ -443,18 +443,16 @@ by having two of something".
 **What the plan said.** 120 questions, stratified six ways. The number came from
 what felt like enough to be credible without being unaffordable.
 
-**What the decision layer said, once it existed.** At the spread two real models
-produce on this corpus, 120 paired cases resolve a difference of about 11.5%.
-The margin declared for shipping is 5%, which needs roughly 636 pairs. The suite
-cannot answer the question it was built to answer, at the threshold it declared,
-and no amount of care in the questions changes that.
+**What the decision layer said, once it existed.** 120 paired cases could not
+resolve the 5-point margin the project had declared, so the suite could not
+answer the question it was built to answer and no amount of care in the
+questions changes that.
 
-**The part that stings.** This was arithmetic, not a discovery. `required_sample_size`
-is four lines and needs one input: a guess at how often the two models will
-differ. Twenty per cent would have been a fine guess. Running it before authoring
-would have taken a minute and returned 636, and the corpus would have been
-designed around that number or the margin would have been set somewhere the
-corpus could reach.
+**The part that stings.** This was arithmetic, not a discovery.
+`required_sample_size` is four lines and needs one input, a guess at how often
+the two models will differ. Running it before authoring would have taken a
+minute, and the corpus would have been designed around the answer or the margin
+set somewhere the corpus could reach.
 
 Instead the calculation arrived in M4, three milestones after the decision it
 should have informed, as a verdict on work already finished.
@@ -477,3 +475,37 @@ the protocol.
 visibly broken on this workload". That is a smaller claim than the project set
 out to make and it is still worth making, as long as it is the claim that gets
 published.
+
+
+## 15. My guess at the spread was twice the real one
+
+**What I published.** Before the comparison ran, I reported that resolving the
+5-point margin would take about 636 paired cases, and put that number in the
+README and in the Evals dive's README.
+
+**Where it came from.** A guess. `minimum_detectable_effect` needs the standard
+deviation of the paired differences, nobody had measured one, so I assumed the
+two models would disagree on about 20% of cases and used 0.45.
+
+**What the measurement says.** Sonnet and Haiku disagree on 6 of 120 cases, 5%,
+for a standard deviation of 0.219. Resolving the margin takes about 201 pairs,
+not 636. The suite is short by 81 cases for this particular comparison, not by
+five hundred.
+
+**Why the error went the direction it did.** I reasoned about how different two
+models are in general, when what the formula wants is how often they differ *on
+this corpus*, which is mostly a fact about the corpus. Two thirds of these
+questions are lookups both models get right, and a case they both get right
+contributes exactly nothing to the spread. The pairing that makes 120 cases
+usable is the same thing that made my estimate wrong.
+
+**What I did.** Corrected it everywhere it was published, including in another
+repository, rather than leaving the more dramatic number standing because it made
+a better story. The corrected figure is less alarming and more useful: 81 more
+cases is an afternoon of authoring, and 636 sounded like a reason to give up.
+
+**The general form.** A planning number computed from a guessed input is a
+guess wearing a decimal point. Label it as an assumption where it is published,
+and replace it with the measurement the moment one exists. The tell that I had
+not done this is that the figure appeared in a README with no mention of where
+its inputs came from.

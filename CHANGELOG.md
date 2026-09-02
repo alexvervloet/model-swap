@@ -14,6 +14,13 @@
   at Opus.
 
 ### Added
+- `modelswap.ledger`: every spending run records what it actually spent, and
+  every run about to spend checks its estimate against what is left of a $2.00
+  project budget. Per-run ceilings stop one command running away; they do
+  nothing about six sensible commands adding up, which is how the first budget
+  went.
+- `Judgment` records what each verdict cost, so the ledger is accurate rather
+  than estimated.
 - `modelswap.decision`: paired bootstrap on per-case outcomes, read against a
   predeclared 5-point margin rather than against zero, with one error budget
   split across the metric family. Verdicts are ship, do not ship, or

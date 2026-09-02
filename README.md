@@ -189,83 +189,82 @@ The verdict is ship, do not ship, or **inconclusive with the number of extra
 cases that would settle it**. Inconclusive is a real answer and, at sample sizes
 this project can afford, the most likely one.
 
-### The finding that arrived before the comparison did
+### What the comparison says
 
-At the spread two real models produce, 120 paired cases can resolve a difference
-of about **11.5%**. The declared margin is 5%, which needs roughly **636 pairs**.
+Every number below is reproducible from the cache with `python -m modelswap.compare`,
+`python -m modelswap.decision` and `python -m modelswap.judges`, all of which are free
+to run and call no model.
 
-| pairs | smallest difference it can see |
-|---|---|
-| 40 | 19.9% |
-| 120 | 11.5% |
-| 300 | 7.3% |
-| 600 | 5.1% |
+| Variant | Correct | $/100 answers | p50 | p95 |
+|---|---|---|---|---|
+| claude-haiku-4-5 | 110/120 (92%) | $0.25 | 1.9s | 3.8s |
+| claude-sonnet-5 | 116/120 (97%) | $0.68 | 3.6s | 5.7s |
+| claude-opus-5 (reference) | 117/120 (98%) | $2.16 | 5.1s | 8.9s |
 
-So this suite cannot answer its own question at its own margin, and it could
-have told me that before I wrote a single question. The report prints that number
-next to every verdict, because a "ship" from a suite that cannot see the margin
-is not evidence and the only way a reader learns that is if it is on the screen.
+Haiku is 2.7 times cheaper than Sonnet and half the latency, for five points of
+accuracy. Opus buys one point over Sonnet for three times the price.
 
-Three ways out, none of them free: more questions, a wider margin, or publishing
-inconclusive and saying why. That choice is the write-up.
+**The verdict is inconclusive, and that is the answer.**
+
+```
+correct              -5.0% [-10.0%, -0.8%]  inconclusive, needs ~81 more pairs
+                     smallest difference 120 pairs can see: 6.5%
+behaviour_matches    -2.5% [-6.7%, +0.0%]   inconclusive
+cited                +0.0% [+0.0%, +0.0%]   ship
+```
+
+Haiku is worse. The interval excludes zero, so that part is real. What 120 pairs
+cannot settle is whether it is worse by more than the five points declared as
+acceptable, because the interval spans the margin in both directions. Roughly 81
+more paired cases would settle this particular comparison; resolving the margin
+in general takes about 201.
+
+A suite that returns "inconclusive" is not a broken suite. It is one that
+declined to launder a 5-point measurement into a decision it could not support,
+which is the failure mode the whole project was built to make visible.
+
+**Where Haiku loses is legible.** Its ten misses are concentrated in multihop
+(17/20 against Sonnet's 19) and override (18/20 against 20), the two strata built
+to punish a model that stops at the first plausible passage. It matched Sonnet
+exactly on refusals, 20/20, so it is not inventing policy. That is a different
+recommendation from "Haiku is 5% worse": it is fine for lookups and weaker when
+an answer needs two documents reconciled.
+
+### The judge is not favouring its own answers
+
+The archived Opus verdicts turned into the calibration the design was missing.
+Two independent judges over the same 170 answers:
+
+| Answers by | n | Agree | Kappa | Retired judge | Current judge |
+|---|---|---|---|---|---|
+| claude-haiku-4-5 | 50 | 98% | 0.88 | 92% correct | 90% correct |
+| claude-opus-5 | 120 | 99% | 0.80 | 98% correct | 98% correct |
+
+The retired Opus judge was one point softer on Opus's own answers and two points
+softer on Haiku's. A spread of one point, in the wrong direction for
+self-preference. Sonnet judging Sonnet's answers is the sharpest version of a
+bias this design cannot avoid, and the measurement says it is not moving the
+result. That cost $0.36, on answers already paid for.
 
 ## Status
 
-Built and tested: the corpus, the 120-question set, the answer runner, the
-judge, the two-round labeling flow, and the calibration report. 61 tests, green
-in CI.
+The comparison has run. Corpus, question set, answer runner, judge, calibration
+report, decision layer and spend ledger are built and tested: 120 tests, green in
+CI, 80% coverage.
 
-Generated so far, against the real system under test with real embeddings:
+| | |
+|---|---|
+| Answers generated | 360, across three models |
+| Verdicts | 360 under the current rubric, plus 170 from a retired judge |
+| Total spent | $1.87 of a $2.00 budget the code enforces |
 
-| Variant | Answers | Cost | Role |
-|---|---|---|---|
-| claude-haiku-4-5 | 120 | $0.30 | candidate |
-| claude-sonnet-5 | pending | ~$0.96 | candidate, and the judge |
-| claude-opus-5 | 120 | $2.60, already spent | reference only, never generated again |
+Not done: the human labels. Two rounds, weeks apart, and the one part of this
+that cannot be automated or hurried. Until they exist the judge is uncalibrated
+against a person, and every accuracy number above carries that caveat. The
+inter-judge agreement is a partial substitute and not the same thing.
 
-```bash
-python -m modelswap.compare    # free: cost, latency and accuracy from the cache
-python -m modelswap.judges     # free: the retired judge against the current one
-```
-
-The Opus answers were generated before it was dropped as too expensive. They are
-kept because deleting them refunds nothing and they answer two questions the
-project could not otherwise afford. The first is what a much dearer model
-actually buys: it costs 8.5x Haiku for the same 120 questions and is 2.6x slower
-at the median, both measured rather than quoted. The second is better.
-
-**A retired judge is a second opinion.** Those 120 answers were graded by an
-Opus judge under a rubric that has since been retired, and 50 of Haiku's were
-too. Grading the same answers again with the current Sonnet judge gives two
-independent judges over one identical set of outputs, which is the only handle
-this project has on the bias it carries: the judge is also one of the two
-candidates. If the Opus judge was markedly softer on Opus's answers than the
-Sonnet judge, and the two agree on Haiku's, that gap is self-preference. If both
-differ by the same amount on both, it is a calibration offset, which a paired
-comparison cancels.
-
-That costs $0.24 to find out, on answers already paid for.
-
-An exploratory pass on Opus, before it was dropped as too expensive for this
-project, answered the corpus correctly 118 times out of 120. That was a problem
-before it was a result: a calibration set drawn from one strong model is 41
-correct answers and one wrong one, the human and the judge agree on nearly
-everything, Cohen's kappa is undefined, and the floor refuses to certify a judge
-nobody actually tested. The calibration set draws from both candidates for that
-reason.
-
-The two it got wrong are worth keeping, because both landed in strata invented
-to catch exactly them. It refused a question the documents answer ("can I bring
-a horse across to Kilmore" — livestock are named and excluded), and it reported
-the refit schedule correctly while denying the documented link between refits
-and the reduced winter service.
-
-**Blocked on two things.** The Anthropic account is out of credit; finishing
-the comparison needs about $1.44. And the human labels, which are two rounds
-weeks apart and are the one part of this that cannot be automated or hurried.
-
-Twelve write-ups in [LESSONS.md](LESSONS.md), including three defects found in
-the system under test and fixed there, one outage I caused by ignoring a hazard
-I had written down forty minutes earlier, one cache that would have reported an
-outage as a quality regression, one report that was quietly reading half the
-data it claimed to, and the afternoon that emptied the account.
+Fifteen write-ups in [LESSONS.md](LESSONS.md): three defects found in the system
+under test and fixed there, an outage I caused by ignoring a hazard I had written
+down forty minutes earlier, a cache that would have reported an outage as a
+quality regression, a report quietly reading half its data, an afternoon that
+emptied the account, and a published number that came from a guess.
